@@ -8,14 +8,17 @@ services:
       - /app/node_modules
     ports:
       - "3000:3000"
+    env_file:
+      - ../hk-db-dev/.env
     environment:
-      # DATABASE_URL is intentionally not hardcoded here. Use the DB from `hk-db-dev`.
+      # Compose will interpolate POSTGRES_* from the env_file above.
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@hk-app-db-dev:5432/${POSTGRES_DB}
       - JWT_SECRET=supersecretjwtstring12345
       - JWT_EXPIRY=7d
       - DOMAIN=localhost
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
-    command: sh -c "apk add --no-cache postgresql-client >/dev/null 2>&1 || true; until pg_isready -h hk-app-db-dev -p 5432; do echo 'waiting for db'; sleep 1; done; npm install && npm run dev"
+    command: sh -c "apk add --no-cache postgresql-client >/dev/null 2>&1 || true; until pg_isready -h hk-app-db-dev -p 5432 -U ${POSTGRES_USER}; do echo 'waiting for db'; sleep 1; done; npm install && npm run dev"
     networks:
       - hk-db-dev_network
 
