@@ -15,7 +15,7 @@ export default function HomePage() {
       {/* Primary Navigation / Branches */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 mt-12 md:mt-24">
         <div className="flex flex-col md:flex-row items-baseline justify-between gap-4 mb-12">
-          <h2 className="text-4xl md:text-7xl font-black text-neutral-900 uppercase italic tracking-tighter">
+          <h2 className="font-lora text-4xl md:text-7xl font-black text-neutral-900 uppercase italic tracking-tighter">
             Keşfetmeye <br /> Başlayın
           </h2>
           <p className="text-neutral-500 font-medium max-w-xs text-sm md:text-base">
@@ -39,7 +39,7 @@ export default function HomePage() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-red-800/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-800/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
-          <h2 className="relative z-10 text-4xl md:text-7xl font-black text-white uppercase italic tracking-tighter mb-8 leading-none">
+          <h2 className="font-lora relative z-10 text-4xl md:text-7xl font-black text-white uppercase italic tracking-tighter mb-8 leading-none">
             Hayallerinizi <br /> Sahneye Taşıyın
           </h2>
           <p className="relative z-10 text-neutral-400 font-medium text-lg mb-12 max-w-xl mx-auto">

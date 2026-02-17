@@ -16,6 +16,7 @@ interface TrainingCardProps {
   category?: string;
   duration?: string;
   level?: string;
+  _source?: 'training' | 'event';
 }
 
 export default function TrainingCard({
@@ -25,7 +26,8 @@ export default function TrainingCard({
   slug,
   category,
   duration = "Belirtilmedi",
-  level = "Tüm Seviyeler"
+  level = "Tüm Seviyeler",
+  _source = 'training'
 }: TrainingCardProps) {
   return (
     <motion.div
@@ -48,7 +50,7 @@ export default function TrainingCard({
 
         {/* İçerik Alanı */}
         <div className="p-6 md:p-8 flex flex-col flex-1">
-          <h3 className="text-2xl font-black text-neutral-900 mb-4 leading-tight uppercase tracking-tighter italic">
+          <h3 className="font-lora text-2xl font-bold text-neutral-900 mb-4 leading-tight">
             {title}
           </h3>
 
@@ -70,14 +72,14 @@ export default function TrainingCard({
 
           {/* Butonlar */}
           <div className="flex items-center gap-3">
-            <Link href={`/egitimler/${slug}`} className="flex-1">
+            <Link href={_source === 'event' ? `/akademide-neler-var/${slug}` : `/egitimler/${slug}`} className="flex-1">
               <Button variant="outline" className="w-full rounded-full border-neutral-200 text-neutral-600 font-bold uppercase tracking-widest text-[10px] py-6 hover:bg-neutral-50">
                 Detaylar
               </Button>
             </Link>
-            <Link href={`/egitimler/${slug}?apply=true`} className="flex-1">
+            <Link href={_source === 'event' ? `/akademide-neler-var/${slug}` : `/egitimler/${slug}?apply=true`} className="flex-1">
               <Button className="w-full rounded-full bg-red-800 hover:bg-red-900 text-white font-bold uppercase tracking-widest text-[10px] py-6 shadow-lg shadow-red-900/20">
-                Başvuru Yap
+                {_source === 'event' ? 'Detaylar' : 'Başvuru Yap'}
               </Button>
             </Link>
           </div>

@@ -44,6 +44,14 @@ export async function POST(req: Request) {
     const body: InstructorBody = await req.json();
     if (!body.name || body.name.trim().length < 3) return NextResponse.json({ error: 'Name is required and must be at least 3 characters' }, { status: 400 });
     const slug = body.slug ? body.slug : slugify(body.name || '');
+    
+    // Get max display_order and add 1 for new instructor
+    let displayOrder = body.display_order;
+    if (displayOrder === undefined || displayOrder === null || displayOrder === 0) {
+      const maxOrderRes = await query('SELECT COALESCE(MAX(display_order), 0) as max_order FROM instructors');
+      displayOrder = (maxOrderRes.rows[0]?.max_order || 0) + 1;
+    }
+    
     const res = await query(
       `INSERT INTO instructors (name, bio, photo, expertise, slug, display_order, email, projects, social_links, show_on_homepage, show_on_hero_showcase) 
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
@@ -53,7 +61,7 @@ export async function POST(req: Request) {
         body.photo || null,
         body.expertise || null,
         slug,
-        body.display_order || 999,
+        displayOrder,
         body.email || null,
         JSON.stringify(body.projects || []),
         JSON.stringify(body.social_links || {}),

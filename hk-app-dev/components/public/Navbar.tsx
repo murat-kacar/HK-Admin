@@ -14,6 +14,7 @@ export default function Navbar() {
   }, []);
 
   const links = [
+    { href: '/akademide-neler-var', label: 'Akademide Neler Var!' },
     { href: '/egitimler', label: 'Eğitimler' },
     { href: '/egitmenler', label: 'Eğitmenler' },
     { href: '/hakkimizda', label: 'Hakkımızda' },

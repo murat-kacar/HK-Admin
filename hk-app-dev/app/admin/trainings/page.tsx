@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ToastProvider';
 
 const TRAINING_TYPES = [
@@ -106,6 +107,47 @@ export default function AdminTrainingsPage() {
     load();
   };
 
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= items.length) return;
+
+    const newItems = [...items];
+    const current = { ...newItems[index] };
+    const neighbor = { ...newItems[targetIndex] };
+
+    // Swap positions in the local array for immediate visual feedback
+    newItems[index] = neighbor;
+    newItems[targetIndex] = current;
+
+    // Optimistically update display_order values to match their new positions
+    const tempOrder = current.display_order;
+    current.display_order = neighbor.display_order;
+    neighbor.display_order = tempOrder;
+
+    // Update state immediately
+    setItems(newItems);
+
+    try {
+      // Background sync with database
+      await Promise.all([
+        fetch('/api/trainings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: current.id, display_order: current.display_order })
+        }),
+        fetch('/api/trainings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: neighbor.id, display_order: neighbor.display_order })
+        })
+      ]);
+      // No need to call load() if everything is successful
+    } catch (err) {
+      toast?.toast({ title: 'Hata', description: 'Sıralama sunucu tarafında güncellenemedi.', type: 'error' });
+      load(); // Revert to server state on error
+    }
+  };
+
   const tagLabel = (tags: string[]) => {
     if (!tags || tags.length === 0) return null;
     const allowed = ['hero', 'homepage'];
@@ -192,8 +234,20 @@ export default function AdminTrainingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((it) => (
-                  <tr key={it.id}>
+                <AnimatePresence initial={false}>
+                  {items.map((it) => (
+                    <motion.tr
+                      key={it.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        layout: { type: "spring", stiffness: 300, damping: 30 },
+                        opacity: { duration: 0.2 }
+                      }}
+                      style={{ background: 'white' }}
+                    >
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ width: 44, height: 44, borderRadius: '8px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
@@ -213,7 +267,27 @@ export default function AdminTrainingsPage() {
                     </td>
                     <td>{tagLabel(it.highlight_tags) || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontSize: '0.75rem' }}>Genel</span>}</td>
                     <td>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b' }}>{it.display_order}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <button
+                            onClick={() => handleMove(items.indexOf(it), 'up')}
+                            disabled={items.indexOf(it) === 0}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: items.indexOf(it) === 0 ? 'default' : 'pointer', color: items.indexOf(it) === 0 ? '#cbd5e1' : '#94a3b8', display: 'flex' }}
+                            title="Yukarı Taşı"
+                          >
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                          </button>
+                          <button
+                            onClick={() => handleMove(items.indexOf(it), 'down')}
+                            disabled={items.indexOf(it) === items.length - 1}
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: items.indexOf(it) === items.length - 1 ? 'default' : 'pointer', color: items.indexOf(it) === items.length - 1 ? '#cbd5e1' : '#94a3b8', display: 'flex' }}
+                            title="Aşağı Taşı"
+                          >
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                          </button>
+                        </div>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', minWidth: '1.5rem', textAlign: 'center' }}>{it.display_order}</span>
+                      </div>
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
@@ -225,8 +299,9 @@ export default function AdminTrainingsPage() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>

@@ -44,7 +44,7 @@ export default function InstructorCard({
 
                 {/* İçerik Alanı */}
                 <div className="p-6 md:p-8 flex flex-col flex-1">
-                    <h3 className="text-2xl font-black text-neutral-900 mb-2 leading-tight uppercase tracking-tighter italic">
+                    <h3 className="font-lora text-2xl font-semibold text-neutral-900 mb-2 leading-tight">
                         {name}
                     </h3>
 

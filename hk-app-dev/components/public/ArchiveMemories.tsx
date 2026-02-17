@@ -29,7 +29,7 @@ export default function ArchiveMemories() {
   return (
     <section className="py-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold tracking-tight">Akademi Anıları</h2>
+        <h2 className="font-lora italic text-2xl font-bold tracking-tight">Akademi Anıları</h2>
         <span className="text-xs uppercase tracking-widest text-neutral-400">Geçmişten Bugüne</span>
       </div>
 

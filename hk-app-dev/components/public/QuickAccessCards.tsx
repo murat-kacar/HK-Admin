@@ -54,7 +54,7 @@ export default function BranchSelection() {
 
               <div className="absolute inset-0 p-6 flex flex-col justify-end">
                 <div className="w-10 h-0.5 bg-primary mb-4 transition-all duration-300 group-hover:w-full" />
-                <h3 className="text-2xl font-bold text-white mb-2">{branch.title}</h3>
+                <h3 className="font-lora text-2xl font-semibold text-white mb-2">{branch.title}</h3>
                 <p className="text-xs text-white/40 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   {branch.desc}
                 </p>

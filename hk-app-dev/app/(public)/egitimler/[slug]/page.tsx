@@ -108,7 +108,7 @@ export default function TrainingDetailPage({ params }: { params: Promise<{ slug:
               <span className="bg-red-800 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 inline-block shadow-xl">
                 {data.event_type}
               </span>
-              <h1 className="text-5xl md:text-8xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none mb-6">
+              <h1 className="font-lora text-5xl md:text-8xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none mb-6">
                 {data.title}
               </h1>
 
@@ -134,30 +134,40 @@ export default function TrainingDetailPage({ params }: { params: Promise<{ slug:
 
           {/* Sol Kolon: Açıklama & Kazanımlar */}
           <div className="lg:col-span-8">
+            {/* Eğitim Açıklaması */}
             <div className="prose prose-neutral max-w-none mb-20">
               <h2 className="text-sm font-black uppercase tracking-[0.3em] text-red-800 mb-8">Eğitim Hakkında</h2>
-              <p className="text-xl text-neutral-600 font-light leading-relaxed">
-                {data.detail_content || data.description}
+              <p className="text-xl text-neutral-600 font-light leading-relaxed whitespace-pre-wrap">
+                {data.description}
               </p>
             </div>
 
-            {data.metadata?.gains && (
+            {/* Kazanımlar */}
+            {(data.detail_content || (data.metadata?.gains && data.metadata.gains.length > 0)) && (
               <div className="mb-20">
                 <h2 className="text-sm font-black uppercase tracking-[0.3em] text-red-800 mb-10">Kazanımlar ve İçerik</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {data.metadata.gains.map((gain, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex items-start gap-4 p-6 bg-neutral-50 rounded-sm border-l-2 border-red-800"
-                    >
-                      <CheckCircle2 size={18} className="text-red-800 mt-1 flex-shrink-0" />
-                      <span className="text-sm font-medium text-neutral-600 leading-tight">{gain}</span>
-                    </motion.div>
-                  ))}
-                </div>
+                {data.metadata?.gains && data.metadata.gains.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {data.metadata.gains.map((gain, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="flex items-start gap-4 p-6 bg-neutral-50 rounded-sm border-l-2 border-red-800"
+                      >
+                        <CheckCircle2 size={18} className="text-red-800 mt-1 flex-shrink-0" />
+                        <span className="text-sm font-medium text-neutral-600 leading-tight">{gain}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="prose prose-neutral max-w-none">
+                    <p className="text-neutral-600 font-light leading-relaxed whitespace-pre-wrap">
+                      {data.detail_content}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

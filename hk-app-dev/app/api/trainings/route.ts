@@ -54,7 +54,21 @@ export async function GET(req: Request) {
       where.push(`(COALESCE(end_date, start_date) >= CURRENT_DATE OR (start_date IS NULL AND end_date IS NULL))`);
     }
 
-    const sql = `SELECT * FROM trainings WHERE ${where.join(' AND ')} ORDER BY display_order ASC, start_date ASC LIMIT $${params.length + 1}`;
+    const sql = `
+      SELECT 
+        t.*,
+        COALESCE(m.url, t.poster_image) as poster_image
+      FROM trainings t
+      LEFT JOIN (
+        SELECT DISTINCT ON (entity_id) entity_id, url
+        FROM media
+        WHERE entity_type = 'training' AND media_type = 'cover'
+        ORDER BY entity_id, id DESC
+      ) m ON t.id = m.entity_id
+      WHERE ${where.join(' AND ')}
+      ORDER BY t.display_order ASC, t.start_date ASC
+      LIMIT $${params.length + 1}
+    `;
     params.push(limit);
 
     const res = await query(sql, params);
@@ -74,6 +88,14 @@ export async function POST(req: Request) {
     if (body.start_date && isNaN(Date.parse(body.start_date))) return NextResponse.json({ error: 'start_date must be a valid ISO date' }, { status: 400 });
     const tags = (body.highlight_tags || []).filter((c) => VALID_CATEGORIES.includes(c as typeof VALID_CATEGORIES[number]));
     const slug = body.slug ? body.slug : slugify(body.title || '');
+    
+    // Auto-increment display_order if not provided
+    let displayOrder = body.display_order;
+    if (displayOrder === undefined || displayOrder === null || displayOrder === 0) {
+      const maxOrderRes = await query('SELECT COALESCE(MAX(display_order), 0) as max_order FROM trainings');
+      displayOrder = (maxOrderRes.rows[0]?.max_order || 0) + 1;
+    }
+    
     const res = await query(
       `INSERT INTO trainings (title, description, event_type, start_date, end_date, location, poster_image, slug, highlight_tags, display_order, duration, level, timing, detail_content, metadata, status) 
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'active') RETURNING *`,
@@ -87,7 +109,7 @@ export async function POST(req: Request) {
         body.poster_image || null,
         slug,
         tags,
-        body.display_order ?? 0,
+        displayOrder,
         body.duration || null,
         body.level || null,
         body.timing || null,

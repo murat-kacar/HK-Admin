@@ -15,7 +15,7 @@ export default function CTASection() {
           className="space-y-8"
         >
           <div className="space-y-4">
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic">
+            <h2 className="font-lora text-4xl md:text-6xl font-black uppercase tracking-tighter italic">
               Sahnede Yerinizi Alın
             </h2>
             <p className="text-base md:text-lg text-white/60 max-w-2xl mx-auto font-medium">

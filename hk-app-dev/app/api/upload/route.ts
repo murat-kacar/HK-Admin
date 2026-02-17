@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { query } from '@/lib/db';
-import sharp from 'sharp';
-import { writeFile, mkdir } from 'fs/promises';
+import { processImage, processVideo } from '@/lib/media-processor';
 import path from 'path';
-import { randomUUID } from 'crypto';
 
 const MAX_PHOTO_SIZE = 10 * 1024 * 1024;  // 10MB
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;  // 100MB
@@ -14,7 +12,7 @@ const VIDEO_LIMIT = 4;
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
 
-const VALID_ENTITIES = ['training', 'instructor'];
+const VALID_ENTITIES = ['training', 'instructor', 'event'];
 const VALID_MEDIA_TYPES = ['photo', 'video', 'cover'];
 
 export async function POST(req: Request) {
@@ -59,94 +57,43 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = isVideo ? path.extname(file.name) || '.mp4' : '.webp';
-    const uid = randomUUID().slice(0, 12);
-    const filename = `${uid}${ext}`;
-    const thumbFilename = `${uid}_thumb.webp`;
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', `${entityType}s`, entityId);
-    await mkdir(uploadDir, { recursive: true });
 
     let finalUrl: string;
     let thumbUrl: string | null = null;
     let width: number | null = null;
     let height: number | null = null;
     let fileSize: number;
+    let variants: Record<string, any> = {};
 
     if (isImage) {
-      let pipeline = sharp(buffer);
+      // Use new media processor for images
+      const crop = (cropW > 0 && cropH > 0) ? {
+        x: cropX,
+        y: cropY,
+        width: cropW,
+        height: cropH
+      } : undefined;
 
-      // Apply crop if provided
-      if (cropW > 0 && cropH > 0) {
-        pipeline = pipeline.extract({ left: cropX, top: cropY, width: cropW, height: cropH });
-      }
+      const enableAVIF = process.env.ENABLE_AVIF === 'true';
+      const imageVariants = await processImage(buffer, entityType, parseInt(entityId), crop, enableAVIF);
 
-      // Main image: resize max 1920px, WebP quality 82
-      const mainBuffer = await pipeline
-        .clone()
-        .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 82 })
-        .toBuffer();
-
-      const meta = await sharp(mainBuffer).metadata();
-      width = meta.width || null;
-      height = meta.height || null;
-      fileSize = mainBuffer.length;
-
-      await writeFile(path.join(uploadDir, filename), mainBuffer);
-      finalUrl = `/uploads/${entityType}s/${entityId}/${filename}`;
-
-      // Thumbnail: 400px
-      const thumbBuffer = await sharp(mainBuffer)
-        .resize({ width: 400, height: 400, fit: 'cover' })
-        .webp({ quality: 70 })
-        .toBuffer();
-
-      await writeFile(path.join(uploadDir, thumbFilename), thumbBuffer);
-      thumbUrl = `/uploads/${entityType}s/${entityId}/${thumbFilename}`;
+      // Use large variant as primary URL
+      finalUrl = imageVariants.large?.url || imageVariants.original.url;
+      thumbUrl = imageVariants.thumbnail.url;
+      width = imageVariants.large?.width || imageVariants.original.width;
+      height = imageVariants.large?.height || imageVariants.original.height;
+      fileSize = (imageVariants.large?.size || 0) + (imageVariants.medium?.size || 0) + imageVariants.thumbnail.size;
+      variants = imageVariants;
     } else {
-      // Video: save original temporarily, then compress with ffmpeg
-      const tempFilename = `${uid}_temp${path.extname(file.name) || '.mp4'}`;
-      const tempPath = path.join(uploadDir, tempFilename);
-      const compressedFilename = `${uid}.mp4`;
-      const compressedPath = path.join(uploadDir, compressedFilename);
+      // Use new media processor for videos
+      const videoVariants = await processVideo(buffer, entityType, parseInt(entityId), file.name);
 
-      await writeFile(tempPath, buffer);
-
-      try {
-        const { execSync } = await import('child_process');
-        // Compress: H.264 Main profile (max device compat), max 720p, CRF 28, AAC 96k
-        execSync(
-          `ffmpeg -y -i "${tempPath}" -c:v libx264 -profile:v main -level 3.1 -pix_fmt yuv420p -preset medium -crf 28 -vf "scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease" -c:a aac -b:a 96k -movflags +faststart "${compressedPath}" 2>/dev/null`,
-          { timeout: 120000 }
-        );
-        // Remove temp file
-        try { const { unlinkSync } = await import('fs'); unlinkSync(tempPath); } catch { /* ignore */ }
-      } catch {
-        // If compression fails, fall back to original
-        const { renameSync } = await import('fs');
-        try { renameSync(tempPath, compressedPath); } catch { /* ignore */ }
-      }
-
-      // Read compressed file size
-      try {
-        const { statSync } = await import('fs');
-        fileSize = statSync(compressedPath).size;
-      } catch {
-        fileSize = buffer.length;
-      }
-
-      finalUrl = `/uploads/${entityType}s/${entityId}/${compressedFilename}`;
-
-      // Generate video thumbnail using ffmpeg
-      try {
-        const { execSync } = await import('child_process');
-        const thumbPath = path.join(uploadDir, thumbFilename);
-        execSync(`ffmpeg -y -i "${compressedPath}" -ss 00:00:01 -vframes 1 -vf "scale=400:400:force_original_aspect_ratio=decrease,pad=400:400:(ow-iw)/2:(oh-ih)/2" "${thumbPath}" 2>/dev/null`);
-        thumbUrl = `/uploads/${entityType}s/${entityId}/${thumbFilename}`;
-      } catch {
-        // Thumbnail generation failed — non-critical
-      }
+      finalUrl = videoVariants.original.url;
+      thumbUrl = videoVariants.poster?.url || videoVariants.thumbnail?.url || null;
+      width = null; // Video dimensions not tracked in variants
+      height = null;
+      fileSize = videoVariants.original.size;
+      variants = videoVariants;
     }
 
     // For cover type, delete existing cover first
@@ -162,14 +109,14 @@ export async function POST(req: Request) {
     const displayOrder = parseInt(orderRes.rows[0].next_order) || 0;
 
     const insertRes = await query(
-      `INSERT INTO media (entity_type, entity_id, media_type, url, thumbnail_url, original_name, mime_type, file_size, width, height, display_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
-      [entityType, parseInt(entityId), dbMediaType, finalUrl, thumbUrl, file.name, file.type, fileSize, width, height, displayOrder]
+      `INSERT INTO media (entity_type, entity_id, media_type, url, thumbnail_url, original_name, mime_type, file_size, width, height, display_order, variants)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+      [entityType, parseInt(entityId), dbMediaType, finalUrl, thumbUrl, file.name, file.type, fileSize, width, height, displayOrder, JSON.stringify(variants)]
     );
 
     return NextResponse.json({ data: insertRes.rows[0] }, { status: 201 });
   } catch (err) {
     console.error('[Upload]', err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Upload failed', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

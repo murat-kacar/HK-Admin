@@ -18,7 +18,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       ORDER BY t.display_order ASC
     `, [instructor.id]);
 
-    instructor.trainings = trainingsRes.rows;
+    instructor.events = trainingsRes.rows;
 
     return NextResponse.json({ data: instructor });
   } catch (err) {

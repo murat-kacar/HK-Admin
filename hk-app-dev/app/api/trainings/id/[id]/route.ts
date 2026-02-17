@@ -5,7 +5,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
-    const res = await query('SELECT * FROM trainings WHERE id=$1 LIMIT 1', [id]);
+    const res = await query(`
+      SELECT 
+        t.*,
+        COALESCE(m.url, t.poster_image) as poster_image
+      FROM trainings t
+      LEFT JOIN (
+        SELECT DISTINCT ON (entity_id) entity_id, url
+        FROM media
+        WHERE entity_type = 'training' AND media_type = 'cover'
+        ORDER BY entity_id, id DESC
+      ) m ON t.id = m.entity_id
+      WHERE t.id = $1
+      LIMIT 1
+    `, [id]);
     if (res.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     const training = res.rows[0];
     const instRes = await query(`

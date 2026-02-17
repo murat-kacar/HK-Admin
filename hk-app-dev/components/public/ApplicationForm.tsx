@@ -60,7 +60,7 @@ export default function ApplicationForm({ training_id, training_title, training_
         <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-6">
           <CheckCircle2 size={40} />
         </div>
-        <h3 className="text-2xl font-black uppercase italic tracking-tighter text-neutral-900 mb-2">Başvurunuz Alındı!</h3>
+        <h3 className="font-lora text-2xl font-black uppercase italic tracking-tighter text-neutral-900 mb-2">Başvurunuz Alındı!</h3>
         <p className="text-neutral-500 font-medium max-w-xs mx-auto">
           Sanat yolculuğuna ilk adımı attınız. Ekibimiz en kısa sürede sizinle iletişime geçecek.
         </p>

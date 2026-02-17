@@ -13,6 +13,8 @@ interface TrainingItem {
     event_type?: string;
     duration?: string;
     level?: string;
+    display_order?: number;
+    _source?: 'training' | 'event';
 }
 
 export default function FeaturedSection() {
@@ -22,20 +24,55 @@ export default function FeaturedSection() {
     useEffect(() => {
         const fetchFeatured = async () => {
             try {
-                // First attempt: trainings tagged for homepage
-                const r = await fetch('/api/trainings?category=homepage&upcoming=true&limit=3');
-                const data = await r.json();
-                let featuredItems = data?.data || [];
+                // Fetch both trainings and events with 'homepage' tag
+                const [trainingsRes, eventsRes] = await Promise.all([
+                    fetch('/api/trainings?category=homepage&limit=10'),
+                    fetch('/api/events?category=homepage&limit=10')
+                ]);
 
-                // Fallback: If no homepage tags, show first few upcoming trainings excluding those likely in hero
-                if (featuredItems.length === 0) {
-                    const r2 = await fetch('/api/trainings?upcoming=true&limit=6');
-                    const data2 = await r2.json();
-                    // Take 3-6 if we assume first 1-4 are in hero, or just take first 3 if hero is empty
-                    featuredItems = data2?.data?.slice(0, 3) || [];
+                const trainingsData = await trainingsRes.json();
+                const eventsData = await eventsRes.json();
+
+                const trainings = (trainingsData?.data || []).map((t: any) => ({ 
+                    ...t, 
+                    _source: 'training',
+                    poster_image: t.poster_image || t.image_url
+                }));
+                const events = (eventsData?.data || []).map((e: any) => ({ 
+                    ...e, 
+                    _source: 'event',
+                    poster_image: e.image_url || e.poster_image
+                }));
+
+                // Combine and sort by display_order
+                const combined = [...trainings, ...events].sort((a, b) => 
+                    (a.display_order || 999) - (b.display_order || 999)
+                );
+
+                // Fallback: If no homepage items, show first few active items
+                if (combined.length === 0) {
+                    const [fallbackTrainings, fallbackEvents] = await Promise.all([
+                        fetch('/api/trainings?limit=3'),
+                        fetch('/api/events?limit=3')
+                    ]);
+                    const t = await fallbackTrainings.json();
+                    const e = await fallbackEvents.json();
+                    const fallback = [
+                        ...(t?.data || []).map((item: any) => ({ 
+                            ...item, 
+                            _source: 'training',
+                            poster_image: item.poster_image || item.image_url
+                        })),
+                        ...(e?.data || []).map((item: any) => ({ 
+                            ...item, 
+                            _source: 'event',
+                            poster_image: item.image_url || item.poster_image
+                        }))
+                    ].slice(0, 3);
+                    setItems(fallback);
+                } else {
+                    setItems(combined.slice(0, 3));
                 }
-
-                setItems(featuredItems);
             } catch (err) {
                 console.error('[FeaturedSection]', err);
             } finally {
@@ -64,7 +101,7 @@ export default function FeaturedSection() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                     <div className="max-w-2xl">
                         <h2 className="text-sm font-black uppercase tracking-[0.4em] text-red-800 mb-4">Seçili Eğitimler</h2>
-                        <h3 className="text-4xl md:text-6xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none">
+                        <h3 className="font-lora text-4xl md:text-6xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none">
                             Sanat Hunisini <br className="hidden md:block" /> Daraltın
                         </h3>
                     </div>
@@ -91,6 +128,7 @@ export default function FeaturedSection() {
                                 category={it.event_type}
                                 duration={it.duration}
                                 level={it.level}
+                                _source={it._source}
                             />
                         </motion.div>
                     ))}

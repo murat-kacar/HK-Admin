@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
-/* ─── SVG Icons (Modernized) ─── */
 const Icons = {
   dashboard: (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -56,11 +55,17 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
     </svg>
   ),
+  events: (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" />
+    </svg>
+  ),
 };
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Genel Bakış', icon: Icons.dashboard, section: 'ana' },
   { href: '/admin/trainings', label: 'Eğitimler', icon: Icons.trainings, section: 'içerik' },
+  { href: '/admin/events', label: 'Etkinlikler', icon: Icons.events, section: 'içerik' },
   { href: '/admin/instructors', label: 'Eğitmen Kadrosu', icon: Icons.instructors, section: 'içerik' },
   { href: '/admin/applications', label: 'Gelen Başvurular', icon: Icons.applications, section: 'içerik' },
   { href: '/admin/pages', label: 'Sayfa Yönetimi', icon: Icons.pages, section: 'sistem' },
@@ -70,6 +75,7 @@ const navItems = [
 const pageMetadata: Record<string, { title: string; subtitle: string }> = {
   '/admin/dashboard': { title: 'Dashboard', subtitle: 'Akademi genel durum özeti' },
   '/admin/trainings': { title: 'Eğitimler', subtitle: 'Tüm eğitim ve atölyeleri yönet' },
+  '/admin/events': { title: 'Etkinlikler', subtitle: 'Film gösterimleri, söyleşiler ve özel etkinlikler' },
   '/admin/instructors': { title: 'Eğitmenler', subtitle: 'Sanatçı kadrosu ve profiller' },
   '/admin/applications': { title: 'Başvurular', subtitle: 'Elde edilen aday formları' },
   '/admin/pages': { title: 'Sayfa İçerikleri', subtitle: 'Statik ve dinamik sayfa metinleri' },
@@ -97,7 +103,7 @@ export default function AdminShell({ username, children }: { username: string; c
   let currentSection = '';
 
   return (
-    <div className="min-h-screen">
+    <div className="admin-layout">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -108,10 +114,10 @@ export default function AdminShell({ username, children }: { username: string; c
 
       {/* Modern Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-brand" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div className="admin-sidebar-brand-icon">HK</div>
-            <div>
+        <div className="admin-sidebar-brand">
+          <div className="admin-brand-content">
+            <div className="admin-brand-icon">HK</div>
+            <div className="admin-brand-text">
               <h2>HK Akademi</h2>
               <span>Yönetim Paneli</span>
             </div>
@@ -119,28 +125,9 @@ export default function AdminShell({ username, children }: { username: string; c
           <button
             onClick={handleLogout}
             title="Güvenli Çıkış"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              padding: '0.5rem',
-              color: '#64748b',
-              cursor: 'pointer',
-              borderRadius: '8px',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.color = '#ef4444';
-              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.color = '#64748b';
-              e.currentTarget.style.background = 'transparent';
-            }}
+            className="admin-logout-btn"
           >
-            <div style={{ width: '18px', height: '18px' }}>{Icons.logout}</div>
+            {Icons.logout}
           </button>
         </div>
 
@@ -170,17 +157,17 @@ export default function AdminShell({ username, children }: { username: string; c
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" target="_blank" className="admin-nav-link" style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <Link href="/" target="_blank" className="admin-view-site-link">
             {Icons.globe}
             <span>Siteyi Görüntüle</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', marginTop: '0.5rem' }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 800, color: 'white' }}>
+          <div className="admin-user-info">
+            <div className="admin-user-avatar">
               {username.charAt(0).toUpperCase()}
             </div>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600, color: '#f1f5f9', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{username}</p>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748b' }}>Yönetici</p>
+            <div className="admin-user-details">
+              <p className="admin-user-name">{username}</p>
+              <p className="admin-user-role">Yönetici</p>
             </div>
           </div>
         </div>

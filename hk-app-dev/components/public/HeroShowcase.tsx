@@ -11,6 +11,8 @@ interface TrainingItem {
   description?: string;
   slug?: string;
   event_type?: string;
+  display_order?: number;
+  _source?: 'training' | 'event';
 }
 
 export default function HeroShowcase() {
@@ -23,19 +25,55 @@ export default function HeroShowcase() {
   useEffect(() => {
     const fetchHero = async () => {
       try {
-        // Try fetching hero items
-        const r = await fetch('/api/trainings?category=hero&upcoming=true&limit=4');
-        const data = await r.json();
-        let heroItems = data?.data || [];
+        // Fetch both trainings and events with 'hero' tag
+        const [trainingsRes, eventsRes] = await Promise.all([
+          fetch('/api/trainings?category=hero&limit=10'),
+          fetch('/api/events?category=hero&limit=10')
+        ]);
+        
+        const trainingsData = await trainingsRes.json();
+        const eventsData = await eventsRes.json();
+        
+        const trainings = (trainingsData?.data || []).map((t: any) => ({ 
+          ...t, 
+          _source: 'training',
+          poster_image: t.poster_image || t.image_url
+        }));
+        const events = (eventsData?.data || []).map((e: any) => ({ 
+          ...e, 
+          _source: 'event',
+          poster_image: e.image_url || e.poster_image
+        }));
+        
+        // Combine and sort by display_order
+        const combined = [...trainings, ...events].sort((a, b) => 
+          (a.display_order || 999) - (b.display_order || 999)
+        );
 
-        // Fallback: If no hero items, fetch any upcoming trainings
-        if (heroItems.length === 0) {
-          const r2 = await fetch('/api/trainings?upcoming=true&limit=4');
-          const data2 = await r2.json();
-          heroItems = data2?.data || [];
+        // If no hero items, fallback to recent active items
+        if (combined.length === 0) {
+          const [fallbackTrainings, fallbackEvents] = await Promise.all([
+            fetch('/api/trainings?limit=4'),
+            fetch('/api/events?limit=4')
+          ]);
+          const t = await fallbackTrainings.json();
+          const e = await fallbackEvents.json();
+          const fallback = [
+            ...(t?.data || []).map((item: any) => ({ 
+              ...item, 
+              _source: 'training',
+              poster_image: item.poster_image || item.image_url
+            })),
+            ...(e?.data || []).map((item: any) => ({ 
+              ...item, 
+              _source: 'event',
+              poster_image: item.image_url || item.poster_image
+            }))
+          ].slice(0, 4);
+          setItems(fallback);
+        } else {
+          setItems(combined.slice(0, 5));
         }
-
-        setItems(heroItems);
       } catch (err) {
         console.error('[HeroShowcase]', err);
       } finally {
@@ -69,7 +107,7 @@ export default function HeroShowcase() {
       <div className="w-full max-w-6xl mx-auto px-4 md:px-6">
         <div className="w-full py-20 bg-neutral-50 rounded-3xl border-2 border-dashed border-neutral-100 flex flex-col items-center justify-center text-center">
           <p className="text-neutral-400 font-bold uppercase tracking-widest text-xs mb-2">Akademi Vitrini</p>
-          <h3 className="text-xl font-black italic text-neutral-800 uppercase tracking-tighter">Yakında Yeni Eğitimler Burada Olacak</h3>
+          <h3 className="font-lora text-xl font-black italic text-neutral-800 uppercase tracking-tighter">Yakında Yeni Eğitimler Burada Olacak</h3>
         </div>
       </div>
     );
@@ -85,9 +123,8 @@ export default function HeroShowcase() {
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* ── Sol: Vitrin Alanı ── */}
-        <Link
-          href={`/egitimler/${activeItem.slug || activeItem.id}`}
-          className="relative w-full md:flex-1 flex flex-col bg-neutral-900 overflow-hidden cursor-pointer group"
+        <div
+          className="relative w-full md:flex-1 flex flex-col bg-neutral-900 overflow-hidden"
         >
           {/* Görsel Paneli */}
           <div className="relative w-full aspect-[5/4] md:aspect-auto md:h-full overflow-hidden">
@@ -128,7 +165,7 @@ export default function HeroShowcase() {
                     {activeItem.event_type || 'Öne Çıkan'}
                   </span>
                 </div>
-                <h1 className="text-4xl md:text-7xl font-black text-white mb-6 leading-none uppercase tracking-tighter italic">
+                <h1 className="font-lora text-4xl md:text-7xl font-black text-white mb-6 leading-none uppercase tracking-tighter italic">
                   {activeItem.title}
                 </h1>
 
@@ -138,9 +175,11 @@ export default function HeroShowcase() {
                   </p>
                 )}
 
-                <div className="inline-flex items-center gap-3 bg-white text-black px-6 py-3 rounded-full text-[10px] md:text-xs font-black tracking-widest hover:bg-red-800 hover:text-white transition-all uppercase">
-                  DETAYLARI İNCELE <span>→</span>
-                </div>
+                <Link href={activeItem._source === 'event' ? `/akademide-neler-var/${activeItem.slug}` : `/egitimler/${activeItem.slug}`}>
+                  <div className="inline-flex items-center gap-3 bg-white text-black px-6 py-3 rounded-full text-[10px] md:text-xs font-black tracking-widest hover:bg-red-800 hover:text-white transition-all uppercase cursor-pointer">
+                    DETAYLARI İNCELE <span>→</span>
+                  </div>
+                </Link>
               </motion.div>
             </div>
 
@@ -155,7 +194,7 @@ export default function HeroShowcase() {
               />
             )}
           </div>
-        </Link>
+        </div>
 
         {/* ── Sağ: Seçici Liste (35%) ── */}
         <div className="hidden md:flex w-[350px] bg-neutral-950 flex-col border-l border-white/5">

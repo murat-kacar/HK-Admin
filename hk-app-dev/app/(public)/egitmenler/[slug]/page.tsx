@@ -101,11 +101,11 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
       <section className="max-w-6xl mx-auto px-4 mb-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-          {/* Sol: Fotoğraf */}
+          {/* Sol: Fotoğraf + İletişim */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-5 w-full"
+            className="lg:col-span-5 w-full flex flex-col gap-6"
           >
             <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 shadow-2xl rounded-sm">
               <Image
@@ -116,6 +116,117 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
                 priority
               />
             </div>
+
+            {/* İletişim & Sosyal Medya - Kompakt */}
+            <div className="bg-neutral-50 p-6 rounded-sm border border-neutral-200">
+              <h3 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4">
+                İletişim
+              </h3>
+              <div className="space-y-3">
+                {data.email && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                      <Mail size={14} />
+                    </div>
+                    <a
+                      href={`mailto:${data.email}`}
+                      className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
+                    >
+                      {data.email}
+                    </a>
+                  </div>
+                )}
+
+                {data.social_links?.instagram && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                      <Instagram size={14} />
+                    </div>
+                    <a
+                      href={data.social_links.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
+                    >
+                      {data.social_links.instagram.replace('https://www.', '')}
+                    </a>
+                  </div>
+                )}
+
+                {data.social_links?.twitter && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                      <Twitter size={14} />
+                    </div>
+                    <a
+                      href={data.social_links.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
+                    >
+                      {data.social_links.twitter.replace('https://', '')}
+                    </a>
+                  </div>
+                )}
+
+                {data.social_links?.tiyatrolar && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                      <Globe size={14} />
+                    </div>
+                    <a
+                      href={data.social_links.tiyatrolar}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
+                    >
+                      {data.social_links.tiyatrolar.replace('https://', '')}
+                    </a>
+                  </div>
+                )}
+
+                {data.social_links?.linkedin && data.social_links.linkedin && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                      <Linkedin size={14} />
+                    </div>
+                    <a
+                      href={data.social_links.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
+                    >
+                      {data.social_links.linkedin.replace('https://', '')}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Verdiği Eğitimler */}
+            {data.events && data.events.length > 0 && (
+              <div className="bg-neutral-50 p-6 rounded-sm border border-neutral-200">
+                <h3 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4">
+                  Verdiği Eğitimler
+                </h3>
+                <div className="space-y-3">
+                  {data.events.map((event) => (
+                    <Link
+                      key={event.id}
+                      href={`/egitimler/${event.slug}`}
+                      className="block p-3 bg-white border border-neutral-100 rounded-sm hover:border-sky-400 hover:shadow-md transition-all group"
+                    >
+                      <p className="text-xs font-bold text-neutral-900 group-hover:text-sky-600 transition-colors leading-tight">
+                        {event.title}
+                      </p>
+                      <p className="text-[10px] text-neutral-500 mt-1.5 uppercase font-semibold tracking-wide">
+                        {event.event_type}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
 
           {/* Sağ: Bilgiler */}
@@ -123,143 +234,112 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="lg:col-span-7 pt-4"
+            className="lg:col-span-7 pt-4 flex flex-col gap-12"
           >
-            <h1 className="text-5xl md:text-6xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none mb-4">
-              {data.name}
-            </h1>
-            <h2 className="text-xl md:text-2xl font-medium text-sky-600 italic mb-8">
-              {data.expertise}
-            </h2>
+            <div>
+              <h1 className="font-lora text-5xl md:text-6xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none mb-4">
+                {data.name}
+              </h1>
+              <h2 className="text-xl md:text-2xl font-medium text-sky-600 italic mb-8">
+                {data.expertise}
+              </h2>
 
-
-            {/* Biyografi - Kısa Giriş */}
-            <div className="prose prose-neutral max-w-none mb-10">
-              <p className="text-lg text-neutral-600 leading-relaxed font-light">
-                {data.bio}
-              </p>
-            </div>
-
-            {/* İletişim & Sosyal Medya */}
-            <div className="flex flex-wrap items-center gap-6">
-              {data.email && (
-                <a
-                  href={`mailto:${data.email}`}
-                  className="bg-neutral-900 text-white px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest hover:bg-sky-600 transition-all shadow-lg flex items-center gap-3"
-                >
-                  <Mail size={16} /> İletişime Geç
-                </a>
-              )}
-
-              <div className="flex items-center gap-4">
-                {data.social_links?.instagram && (
-                  <a href={data.social_links.instagram} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-sky-600 hover:border-sky-600 transition-all">
-                    <Instagram size={20} />
-                  </a>
-                )}
-                {data.social_links?.linkedin && (
-                  <a href={data.social_links.linkedin} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-sky-600 hover:border-sky-600 transition-all">
-                    <Linkedin size={20} />
-                  </a>
-                )}
-                {data.social_links?.twitter && (
-                  <a href={data.social_links.twitter} target="_blank" rel="noopener noreferrer" className="w-12 h-12 rounded-full border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-sky-600 hover:border-sky-600 transition-all">
-                    <Twitter size={20} />
-                  </a>
-                )}
+              {/* Biyografi - Kısa Giriş */}
+              <div className="prose prose-neutral max-w-none">
+                <p className="text-lg text-neutral-600 leading-relaxed font-light">
+                  {data.bio}
+                </p>
               </div>
             </div>
+
+            {/* Kariyer & Projeler - Kompakt */}
+            {data.projects && data.projects.length > 0 && (
+              <div className="border-t border-neutral-200 pt-8">
+                <h3 className="text-sm font-black uppercase tracking-widest text-neutral-900 mb-6">
+                  Kariyer & Projeler
+                </h3>
+                <div className="space-y-6">
+                  {/* Tiyatro Oyunları */}
+                  {data.projects.find((p) => (p.category || '').includes('Tiyatro')) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="bg-neutral-50 p-5 rounded-sm border border-neutral-200 hover:border-sky-300 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-9 h-9 bg-sky-600 text-white rounded-full flex items-center justify-center">
+                          <BookOpen size={16} />
+                        </div>
+                        <h4 className="text-xs font-black uppercase tracking-widest text-neutral-900">
+                          Tiyatro Oyunları
+                        </h4>
+                      </div>
+                      <ul className="space-y-2">
+                        {(data.projects.find((p) => (p.category || '').includes('Tiyatro'))?.items || []).map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-xs text-neutral-600 leading-tight">
+                            <span className="text-sky-600 font-bold flex-shrink-0">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+
+                  {/* Film & Dizi (2 Columns) */}
+                  {(data.projects.find((p) => (p.category || '').includes('Film')) || data.projects.find((p) => (p.category || '').includes('Dizi'))) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="bg-neutral-50 p-5 rounded-sm border border-neutral-200 hover:border-sky-300 transition-colors"
+                    >
+                      <h4 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4">
+                        Film & Dizi
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Film Column */}
+                        {data.projects.find((p) => (p.category || '').includes('Film')) && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Film size={14} className="text-sky-600" />
+                              <p className="text-xs font-bold text-neutral-700">Film</p>
+                            </div>
+                            <ul className="space-y-1.5">
+                              {(data.projects.find((p) => (p.category || '').includes('Film'))?.items || []).map((item, idx) => (
+                                <li key={idx} className="text-xs text-neutral-600 leading-tight">
+                                  <span className="text-sky-600 font-bold">•</span> {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Dizi Column */}
+                        {data.projects.find((p) => (p.category || '').includes('Dizi')) && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <Film size={14} className="text-sky-600" />
+                              <p className="text-xs font-bold text-neutral-700">Dizi</p>
+                            </div>
+                            <ul className="space-y-1.5">
+                              {(data.projects.find((p) => (p.category || '').includes('Dizi'))?.items || []).map((item, idx) => (
+                                <li key={idx} className="text-xs text-neutral-600 leading-tight">
+                                  <span className="text-sky-600 font-bold">•</span> {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
-
-      {/* Projeler & Kariyer Section */}
-      {data.projects && data.projects.length > 0 && (
-        <section className="bg-neutral-50 py-24">
-          <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader
-              title="KARİYER & PROJELER"
-              subtitle="Sanatsal Üretim ve Deneyimler"
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
-              {data.projects.map((cat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-white p-8 rounded-sm shadow-sm border border-neutral-100 hover:border-sky-200 transition-colors"
-                >
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center">
-                      {cat.category.toLowerCase().includes('tiyatro') ? <BookOpen size={20} /> : <Film size={20} />}
-                    </div>
-                    <h3 className="text-sm font-black uppercase tracking-widest text-neutral-900">
-                      {cat.category}
-                    </h3>
-                  </div>
-                  <ul className="space-y-4">
-                    {cat.items.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-sm text-neutral-500 leading-snug">
-                        <Star size={10} className="mt-1 text-sky-600 flex-shrink-0" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Verdiği Eğitimler / Atölyeler Section */}
-      {data.events && data.events.length > 0 && (
-        <section className="bg-white py-24">
-          <div className="max-w-6xl mx-auto px-4">
-            <SectionHeader
-              title="VERDİĞİ EĞİTİMLER"
-              subtitle="Aktif Atölyeler ve Programlar"
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
-              {data.events.map((event, i) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  whileHover={{ y: -10 }}
-                  className="group cursor-pointer"
-                >
-                  <Link href={`/etkinlikler/${event.slug}`}>
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-sm mb-6 shadow-lg border border-neutral-100">
-                      <Image
-                        src={event.poster_image || '/assets/images/placeholder.jpg'}
-                        alt={event.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
-                        <span className="text-white text-[10px] font-bold uppercase tracking-widest bg-sky-600 self-start px-3 py-1 mb-2">
-                          İNCELE
-                        </span>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-black uppercase italic tracking-tighter text-neutral-900 leading-none">
-                      {event.title}
-                    </h3>
-                    <p className="text-[10px] uppercase font-bold text-sky-600 mt-2 tracking-widest">
-                      {event.event_type}
-                    </p>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Galeri Section */}
       {media.length > 0 && (
