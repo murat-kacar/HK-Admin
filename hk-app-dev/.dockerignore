@@ -27,12 +27,10 @@ Thumbs.db
 npm-debug.log*
 
 # Docker
-Dockerfile
-docker-compose*
-.dockerignore
+/.git
 
 # Production Artifacts
-hk-image-prod/
+/hk-image-prod/
 nginx/
 
 # Temp

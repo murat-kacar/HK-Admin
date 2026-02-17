@@ -1,0 +1,9 @@
+# Ignore the large prebuilt archive
+hk-image-prod/hk-app-prod.tar
+
+# Common ignores
+node_modules/
+.next/
+.env
+.env.*
+.DS_Store
