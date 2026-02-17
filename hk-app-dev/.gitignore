@@ -132,3 +132,6 @@ pgdata/
 .parcel-cache/
 .eslintcache
 .stylelintcache
+
+# Ignore large prebuilt archive that should not be committed
+hk-image-prod/hk-app-prod.tar
