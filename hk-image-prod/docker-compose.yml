@@ -1,0 +1,25 @@
+services:
+  # ── Production Application only ──
+  app:
+    image: hk-app-prod:latest
+    container_name: hk-prod-app
+    restart: always
+    env_file:
+      - .env.production
+    # Uploads volume can be removed if customer uses external S3/Cloud storage,
+    # but kept here as a comment just in case they use local persistent storage.
+    # volumes:
+    #   - ./uploads:/app/public/uploads
+
+  # ── Nginx Proxy ──
+  nginx:
+    image: nginx:alpine
+    container_name: hk-prod-proxy
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

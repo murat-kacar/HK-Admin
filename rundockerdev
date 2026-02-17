@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DB_DIR="$ROOT_DIR/hk-db-dev"
+APP_DIR="$ROOT_DIR/hk-app-dev"
+DB_SERVICE_NAME="hk-app-db-dev"
+TIMEOUT=${RUNDOCKERDEV_TIMEOUT:-120}
+
+echo "Starting Postgres (docker) from $DB_DIR..."
+cd "$DB_DIR"
+docker compose up -d --build
+
+echo "Waiting for Postgres to be healthy (up to ${TIMEOUT}s)..."
+status=unknown
+for i in $(seq 1 "$TIMEOUT"); do
+  status=$(docker inspect -f '{{.State.Health.Status}}' "$DB_SERVICE_NAME" 2>/dev/null || echo unknown)
+  printf "[%3d] db health: %s\n" "$i" "$status"
+  if [ "$status" = "healthy" ]; then
+    echo "Postgres is healthy."
+    break
+  fi
+  sleep 1
+done
+
+if [ "$status" != "healthy" ]; then
+  echo "ERROR: Postgres did not become healthy within ${TIMEOUT}s" >&2
+  exit 1
+fi
+
+echo "Starting Next.js app (docker dev) from $APP_DIR..."
+cd "$APP_DIR"
+docker compose up -d --build
+
+echo "Done. Tail logs with:
+  docker compose -f $APP_DIR/docker-compose.yml logs -f hk-app-dev"

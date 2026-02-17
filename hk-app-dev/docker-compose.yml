@@ -1,0 +1,25 @@
+services:
+  app:
+    image: node:20-alpine
+    container_name: hk-app-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      # DATABASE_URL is intentionally not hardcoded here. Use the DB from `hk-db-dev`.
+      - JWT_SECRET=supersecretjwtstring12345
+      - JWT_EXPIRY=7d
+      - DOMAIN=localhost
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+    command: sh -c "apk add --no-cache postgresql-client >/dev/null 2>&1 || true; until pg_isready -h hk-app-db-dev -p 5432; do echo 'waiting for db'; sleep 1; done; npm install && npm run dev"
+    networks:
+      - hk-db-dev_network
+
+networks:
+  hk-db-dev_network:
+    external: true
+    name: hk-db-dev_default

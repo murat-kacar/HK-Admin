@@ -1,0 +1,134 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+/.pnp
+.pnp.js
+.pnp.cjs
+.yarn/install-state.gz
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+
+# ========================
+# Next.js
+# ========================
+/.next/
+/out/
+next-env.d.ts
+
+# ========================
+# Uploaded Media
+# ========================
+/public/uploads/
+
+# ========================
+# Build & Production
+# ========================
+/build/
+/dist/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.*
+!.env.example
+
+# ========================
+# Package Manager Locks (sadece package-lock.json kalacak)
+# ========================
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+*.swp
+*.swo
+*~
+._*
+
+# ========================
+# IDE & Editor
+# ========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+.project
+.classpath
+.settings/
+*.iml
+.history/
+
+# ========================
+# Debug & Logs
+# ========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+*.log
+logs/
+
+# ========================
+# Testing & Coverage
+# ========================
+/coverage/
+*.lcov
+.nyc_output/
+jest-results/
+.jest/
+
+# ========================
+# Vercel
+# ========================
+.vercel
+
+# ========================
+# Docker (prod volumes, override)
+# ========================
+docker-compose.override.yml
+nginx/certs/
+pgdata/
+
+# ========================
+# Database dumps
+# ========================
+*.sql
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+
+# ========================
+# Devcontainer
+# ========================
+.devcontainer/
+
+# ========================
+# Misc
+# ========================
+*.pid
+*.seed
+*.pid.lock
+*.orig
+.cache/
+.temp/
+.tmp/
+.turbo/
+.parcel-cache/
+.eslintcache
+.stylelintcache
