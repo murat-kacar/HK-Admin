@@ -13,7 +13,7 @@ export default function AuthLoginPage() {
     const payload = { username: fd.get('username'), password: fd.get('password') };
     try {
       const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error('Giriş başarısız');
+      if (!res.ok) {throw new Error('Giriş başarısız');}
       window.location.href = '/admin/dashboard';
     } catch {
       setError('Kullanıcı adı veya şifre hatalı.');

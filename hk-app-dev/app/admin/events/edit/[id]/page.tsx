@@ -20,12 +20,28 @@ const CATEGORIES = [
   { value: 'homepage', label: 'Ana Sayfa' },
 ];
 
+interface EventForm {
+  title: string;
+  event_type: string;
+  slug: string;
+  description: string;
+  content: string;
+  start_date: string;
+  end_date: string;
+  location: string;
+  image_url: string;
+  is_active: boolean;
+  display_order: number;
+  metadata: Record<string, unknown>;
+  highlight_tags: string[];
+}
+
 export default function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<any>({
+  const [form, setForm] = useState<EventForm>({
     title: '',
     event_type: 'Film Gösterimi',
     slug: '',
@@ -107,7 +123,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   };
 
   const toggleTag = (tag: string) => {
-    setForm((prev: any) => {
+    setForm((prev) => {
       const tags = [...(prev.highlight_tags || [])];
       if (tags.includes(tag)) {
         return { ...prev, highlight_tags: tags.filter(t => t !== tag) };

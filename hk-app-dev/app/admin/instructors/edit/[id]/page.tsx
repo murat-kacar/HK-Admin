@@ -4,12 +4,38 @@ import { useToast } from '@/components/ToastProvider';
 import { useRouter } from 'next/navigation';
 import MediaManager from '@/components/admin/MediaManager';
 
+interface InstructorForm {
+  name: string;
+  expertise: string;
+  bio: string;
+  email: string;
+  slug: string;
+  projects: unknown[];
+  social_links: Record<string, string>;
+  platform_links: Record<string, string>;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
+  show_on_homepage: boolean;
+  show_on_hero_showcase: boolean;
+  display_order: number;
+}
+
+type MediaItem = {
+  id: number;
+  media_type: string;
+  url: string;
+  thumbnail_url: string | null;
+  original_name: string;
+  display_order: number;
+};
+
 export default function InstructorEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<any>({
+  const [form, setForm] = useState<InstructorForm>({
     name: '',
     expertise: '',
     bio: '',
@@ -40,7 +66,7 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
     show_on_hero_showcase: false,
     display_order: 0
   });
-  const [media, setMedia] = useState<any[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [errors, setErrors] = useState<string | null>(null);
   const toast = useToast();
 
@@ -117,7 +143,7 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
     router.push('/admin/instructors');
   };
 
-  if (loading) return <div className="admin-loading"><span className="admin-spinner" /> Yükleniyor...</div>;
+  if (loading) {return <div className="admin-loading"><span className="admin-spinner" /> Yükleniyor...</div>;}
 
   return (
     <div className="admin-container">

@@ -96,7 +96,7 @@ export default function AdminTrainingsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Bu eğitimi silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu eğitimi silmek istediğinize emin misiniz?')) {return;}
     const res = await fetch('/api/trainings', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -109,7 +109,7 @@ export default function AdminTrainingsPage() {
 
   const handleMove = async (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= items.length) return;
+    if (targetIndex < 0 || targetIndex >= items.length) {return;}
 
     const newItems = [...items];
     const current = { ...newItems[index] };
@@ -149,10 +149,10 @@ export default function AdminTrainingsPage() {
   };
 
   const tagLabel = (tags: string[]) => {
-    if (!tags || tags.length === 0) return null;
+    if (!tags || tags.length === 0) {return null;}
     const allowed = ['hero', 'homepage'];
     const filtered = tags.filter(t => allowed.includes(t));
-    if (filtered.length === 0) return null;
+    if (filtered.length === 0) {return null;}
 
     return filtered.map((t) => (
       <span key={t} style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: '4px', background: t === 'hero' ? '#fef3c7' : '#dcfce7', color: t === 'hero' ? '#92400e' : '#166534', fontWeight: 700, marginRight: '4px', textTransform: 'uppercase' }}>

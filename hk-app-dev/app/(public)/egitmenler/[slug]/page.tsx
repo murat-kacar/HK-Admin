@@ -31,39 +31,47 @@ interface InstructorData {
   }[];
 }
 
+interface MediaItem {
+  id: number;
+  url: string;
+  original_name?: string;
+  thumbnail_url?: string;
+  media_type?: string;
+}
+
 export default function InstructorDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const [data, setData] = useState<InstructorData | null>(null);
-  const [media, setMedia] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [instructorData, setInstructorData] = useState<InstructorData | null>(null);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInstructorData = async () => {
       try {
-        const res = await fetch(`/api/instructors/slug/${slug}`);
-        const j = await res.json();
-        if (j.data) {
-          const instructor = j.data;
+        const instructorResponse = await fetch(`/api/instructors/slug/${slug}`);
+        const instructorPayload = await instructorResponse.json();
+        if (instructorPayload.data) {
+          const instructor = instructorPayload.data as InstructorData;
           // Parse JSON if needed
-          if (typeof instructor.projects === 'string') instructor.projects = JSON.parse(instructor.projects);
-          if (typeof instructor.social_links === 'string') instructor.social_links = JSON.parse(instructor.social_links);
-          setData(instructor);
+          if (typeof instructor.projects === 'string') {instructor.projects = JSON.parse(instructor.projects);}
+          if (typeof instructor.social_links === 'string') {instructor.social_links = JSON.parse(instructor.social_links);}
+          setInstructorData(instructor);
 
           // Fetch Media
-          const mRes = await fetch(`/api/media?entity_type=instructor&entity_id=${instructor.id}`);
-          const mJ = await mRes.json();
-          setMedia(mJ.data || []);
+          const mediaResponse = await fetch(`/api/media?entity_type=instructor&entity_id=${instructor.id}`);
+          const mediaPayload = await mediaResponse.json();
+          setMediaItems((mediaPayload.data || []) as MediaItem[]);
         }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchData();
+    fetchInstructorData();
   }, [slug]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="w-8 h-8 border-4 border-neutral-200 border-t-sky-600 rounded-full animate-spin"></div>
@@ -71,7 +79,7 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
     );
   }
 
-  if (!data) {
+  if (!instructorData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
         <h1 className="text-2xl font-bold text-neutral-900 mb-4">Eğitmen Bulunamadı</h1>
@@ -109,8 +117,8 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
           >
             <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 shadow-2xl rounded-sm">
               <Image
-                src={data.photo || '/assets/images/placeholder.jpg'}
-                alt={data.name}
+                src={instructorData.photo || '/assets/images/placeholder.jpg'}
+                alt={instructorData.name}
                 fill
                 className="object-cover"
                 priority
@@ -123,80 +131,80 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
                 İletişim
               </h3>
               <div className="space-y-3">
-                {data.email && (
+                {instructorData.email && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
                       <Mail size={14} />
                     </div>
                     <a
-                      href={`mailto:${data.email}`}
+                      href={`mailto:${instructorData.email}`}
                       className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
                     >
-                      {data.email}
+                      {instructorData.email}
                     </a>
                   </div>
                 )}
 
-                {data.social_links?.instagram && (
+                {instructorData.social_links?.instagram && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
                       <Instagram size={14} />
                     </div>
                     <a
-                      href={data.social_links.instagram}
+                      href={instructorData.social_links.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
                     >
-                      {data.social_links.instagram.replace('https://www.', '')}
+                      {instructorData.social_links.instagram.replace('https://www.', '')}
                     </a>
                   </div>
                 )}
 
-                {data.social_links?.twitter && (
+                {instructorData.social_links?.twitter && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
                       <Twitter size={14} />
                     </div>
                     <a
-                      href={data.social_links.twitter}
+                      href={instructorData.social_links.twitter}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
                     >
-                      {data.social_links.twitter.replace('https://', '')}
+                      {instructorData.social_links.twitter.replace('https://', '')}
                     </a>
                   </div>
                 )}
 
-                {data.social_links?.tiyatrolar && (
+                {instructorData.social_links?.tiyatrolar && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
                       <Globe size={14} />
                     </div>
                     <a
-                      href={data.social_links.tiyatrolar}
+                      href={instructorData.social_links.tiyatrolar}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
                     >
-                      {data.social_links.tiyatrolar.replace('https://', '')}
+                      {instructorData.social_links.tiyatrolar.replace('https://', '')}
                     </a>
                   </div>
                 )}
 
-                {data.social_links?.linkedin && data.social_links.linkedin && (
+                {instructorData.social_links?.linkedin && instructorData.social_links.linkedin && (
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
                       <Linkedin size={14} />
                     </div>
                     <a
-                      href={data.social_links.linkedin}
+                      href={instructorData.social_links.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-neutral-700 hover:text-sky-600 transition-colors font-medium break-all leading-tight"
                     >
-                      {data.social_links.linkedin.replace('https://', '')}
+                      {instructorData.social_links.linkedin.replace('https://', '')}
                     </a>
                   </div>
                 )}
@@ -204,13 +212,13 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
             </div>
 
             {/* Verdiği Eğitimler */}
-            {data.events && data.events.length > 0 && (
+            {instructorData.events && instructorData.events.length > 0 && (
               <div className="bg-neutral-50 p-6 rounded-sm border border-neutral-200">
                 <h3 className="text-xs font-black uppercase tracking-widest text-neutral-900 mb-4">
                   Verdiği Eğitimler
                 </h3>
                 <div className="space-y-3">
-                  {data.events.map((event) => (
+                  {instructorData.events.map((event) => (
                     <Link
                       key={event.id}
                       href={`/egitimler/${event.slug}`}
@@ -238,29 +246,29 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
           >
             <div>
               <h1 className="font-lora text-5xl md:text-6xl font-black text-neutral-900 uppercase italic tracking-tighter leading-none mb-4">
-                {data.name}
+                {instructorData.name}
               </h1>
               <h2 className="text-xl md:text-2xl font-medium text-sky-600 italic mb-8">
-                {data.expertise}
+                {instructorData.expertise}
               </h2>
 
               {/* Biyografi - Kısa Giriş */}
               <div className="prose prose-neutral max-w-none">
                 <p className="text-lg text-neutral-600 leading-relaxed font-light">
-                  {data.bio}
+                  {instructorData.bio}
                 </p>
               </div>
             </div>
 
             {/* Kariyer & Projeler - Kompakt */}
-            {data.projects && data.projects.length > 0 && (
+            {instructorData.projects && instructorData.projects.length > 0 && (
               <div className="border-t border-neutral-200 pt-8">
                 <h3 className="text-sm font-black uppercase tracking-widest text-neutral-900 mb-6">
                   Kariyer & Projeler
                 </h3>
                 <div className="space-y-6">
                   {/* Tiyatro Oyunları */}
-                  {data.projects.find((p) => (p.category || '').includes('Tiyatro')) && (
+                  {instructorData.projects.find((p) => (p.category || '').includes('Tiyatro')) && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -276,7 +284,7 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
                         </h4>
                       </div>
                       <ul className="space-y-2">
-                        {(data.projects.find((p) => (p.category || '').includes('Tiyatro'))?.items || []).map((item, idx) => (
+                        {(instructorData.projects.find((p) => (p.category || '').includes('Tiyatro'))?.items || []).map((item, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-xs text-neutral-600 leading-tight">
                             <span className="text-sky-600 font-bold flex-shrink-0">•</span>
                             <span>{item}</span>
@@ -287,7 +295,7 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
                   )}
 
                   {/* Film & Dizi (2 Columns) */}
-                  {(data.projects.find((p) => (p.category || '').includes('Film')) || data.projects.find((p) => (p.category || '').includes('Dizi'))) && (
+                  {(instructorData.projects.find((p) => (p.category || '').includes('Film')) || instructorData.projects.find((p) => (p.category || '').includes('Dizi'))) && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -299,14 +307,14 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
                       </h4>
                       <div className="grid grid-cols-2 gap-4">
                         {/* Film Column */}
-                        {data.projects.find((p) => (p.category || '').includes('Film')) && (
+                        {instructorData.projects.find((p) => (p.category || '').includes('Film')) && (
                           <div>
                             <div className="flex items-center gap-2 mb-3">
                               <Film size={14} className="text-sky-600" />
                               <p className="text-xs font-bold text-neutral-700">Film</p>
                             </div>
                             <ul className="space-y-1.5">
-                              {(data.projects.find((p) => (p.category || '').includes('Film'))?.items || []).map((item, idx) => (
+                              {(instructorData.projects.find((p) => (p.category || '').includes('Film'))?.items || []).map((item, idx) => (
                                 <li key={idx} className="text-xs text-neutral-600 leading-tight">
                                   <span className="text-sky-600 font-bold">•</span> {item}
                                 </li>
@@ -316,14 +324,14 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
                         )}
 
                         {/* Dizi Column */}
-                        {data.projects.find((p) => (p.category || '').includes('Dizi')) && (
+                        {instructorData.projects.find((p) => (p.category || '').includes('Dizi')) && (
                           <div>
                             <div className="flex items-center gap-2 mb-3">
                               <Film size={14} className="text-sky-600" />
                               <p className="text-xs font-bold text-neutral-700">Dizi</p>
                             </div>
                             <ul className="space-y-1.5">
-                              {(data.projects.find((p) => (p.category || '').includes('Dizi'))?.items || []).map((item, idx) => (
+                              {(instructorData.projects.find((p) => (p.category || '').includes('Dizi'))?.items || []).map((item, idx) => (
                                 <li key={idx} className="text-xs text-neutral-600 leading-tight">
                                   <span className="text-sky-600 font-bold">•</span> {item}
                                 </li>
@@ -342,7 +350,7 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
       </section>
 
       {/* Galeri Section */}
-      {media.length > 0 && (
+      {mediaItems.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 py-24">
           <SectionHeader
             title="PORTFOLYO GALERİSİ"
@@ -350,19 +358,19 @@ export default function InstructorDetailPage({ params }: { params: Promise<{ slu
           />
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-16">
-            {media.map((m, i) => (
+            {mediaItems.map((mediaItem) => (
               <motion.div
-                key={m.id}
+                key={mediaItem.id}
                 whileHover={{ scale: 1.02 }}
                 className="relative aspect-square bg-neutral-100 overflow-hidden rounded-sm group cursor-pointer"
               >
                 <Image
-                  src={m.url}
-                  alt={m.original_name}
+                  src={mediaItem.url}
+                  alt={mediaItem.original_name || instructorData.name}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                {m.media_type === 'video' && (
+                {mediaItem.media_type === 'video' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                     <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-sky-600 shadow-xl">
                       <Film size={24} fill="currentColor" />

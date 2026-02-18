@@ -96,7 +96,7 @@ export default function AdminShell({ username, children }: { username: string; c
   };
 
   const isActive = (href: string) => {
-    if (href === '/admin/dashboard') return pathname === '/admin/dashboard';
+    if (href === '/admin/dashboard') {return pathname === '/admin/dashboard';}
     return pathname.startsWith(href);
   };
 
@@ -134,7 +134,7 @@ export default function AdminShell({ username, children }: { username: string; c
         <nav>
           {navItems.map((item) => {
             const showSection = item.section !== currentSection;
-            if (showSection) currentSection = item.section;
+            if (showSection) {currentSection = item.section;}
 
             return (
               <React.Fragment key={item.href}>

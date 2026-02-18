@@ -14,7 +14,7 @@ interface EventRow {
   location: string | null;
   image_url: string | null;
   start_date: string | null;
-  metadata: any;
+  metadata: Record<string, unknown>;
   is_active: boolean;
 }
 
@@ -40,7 +40,7 @@ export default function AkademideNelerVarPage() {
   }, []);
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '';
+    if (!dateStr) {return '';}
     const date = new Date(dateStr);
     return new Intl.DateTimeFormat('tr-TR', {
       day: 'numeric',

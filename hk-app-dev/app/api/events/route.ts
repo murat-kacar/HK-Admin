@@ -14,7 +14,7 @@ type EventBody = {
   image_url?: string;
   slug?: string;
   content?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   is_active?: boolean;
   display_order?: number;
   highlight_tags?: string[];
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   
   try {
     const where: string[] = [];
-    const params: any[] = [];
+    const params: (string | number | boolean)[] = [];
     
     if (!includeInactive) {
       where.push('is_active = true');
@@ -80,7 +80,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   
   try {
     const body: EventBody = await req.json();
@@ -127,14 +127,14 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   
   try {
     const body: EventBody = await req.json();
-    if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+    if (!body.id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
     
     const existing = await query('SELECT * FROM events WHERE id=$1 LIMIT 1', [body.id]);
-    if (existing.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (existing.rows.length === 0) {return NextResponse.json({ error: 'Not found' }, { status: 404 });}
     
     const cur = existing.rows[0];
     const slug = body.slug ? body.slug : slugify(body.title || cur.title);
@@ -175,12 +175,12 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   
   try {
     const body = await req.json();
     const id = body.id;
-    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
     
     await query('DELETE FROM events WHERE id=$1', [id]);
     return NextResponse.json({ success: true });

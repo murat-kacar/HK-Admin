@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const res = await query('SELECT key, value FROM site_settings');
     const obj: Record<string, string> = {};
-    for (const r of res.rows) obj[r.key] = r.value;
+    for (const r of res.rows) {obj[r.key] = r.value;}
     return NextResponse.json({ data: obj });
   } catch (err) {
     console.error(err);
@@ -16,7 +16,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body = await req.json();
     // body expected: { key: value, ... }

@@ -12,9 +12,9 @@ type InstructorBody = {
   slug?: string;
   display_order?: number;
   email?: string;
-  projects?: any;
-  social_links?: any;
-  platform_links?: any;
+  projects?: unknown[];
+  social_links?: Record<string, string>;
+  platform_links?: Record<string, string>;
   show_on_homepage?: boolean;
   show_on_hero_showcase?: boolean;
   seo_title?: string;
@@ -29,8 +29,8 @@ export async function GET(req: Request) {
 
   try {
     const where: string[] = [];
-    if (homepage === 'true') where.push('show_on_homepage = true');
-    if (url.searchParams.get('hero') === 'true') where.push('show_on_hero_showcase = true');
+    if (homepage === 'true') {where.push('show_on_homepage = true');}
+    if (url.searchParams.get('hero') === 'true') {where.push('show_on_hero_showcase = true');}
 
     const sql = `SELECT * FROM instructors ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY display_order ASC LIMIT $1`;
     const res = await query(sql, [limit]);
@@ -43,10 +43,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body: InstructorBody = await req.json();
-    if (!body.name || body.name.trim().length < 3) return NextResponse.json({ error: 'Name is required and must be at least 3 characters' }, { status: 400 });
+    if (!body.name || body.name.trim().length < 3) {return NextResponse.json({ error: 'Name is required and must be at least 3 characters' }, { status: 400 });}
     const slug = body.slug ? body.slug : slugify(body.name || '');
     
     // Get max display_order and add 1 for new instructor
@@ -86,13 +86,13 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body: InstructorBody = await req.json();
-    if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    if (body.name && body.name.trim().length < 3) return NextResponse.json({ error: 'Name must be at least 3 characters' }, { status: 400 });
+    if (!body.id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
+    if (body.name && body.name.trim().length < 3) {return NextResponse.json({ error: 'Name must be at least 3 characters' }, { status: 400 });}
     const existing = await query('SELECT * FROM instructors WHERE id=$1 LIMIT 1', [body.id]);
-    if (existing.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (existing.rows.length === 0) {return NextResponse.json({ error: 'Not found' }, { status: 404 });}
     const cur = existing.rows[0];
     const slug = body.slug ? body.slug : slugify(body.name || cur.name || '');
     const res = await query(
@@ -130,11 +130,11 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body = await req.json();
     const id = body.id;
-    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
     await query('DELETE FROM instructors WHERE id=$1', [id]);
     return NextResponse.json({ success: true });
   } catch (err) {

@@ -41,11 +41,15 @@ export async function GET(req: Request) {
 // POST: set instructors for a training (replace all)
 export async function POST(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
-    const body = await req.json();
-    const { training_id, instructor_ids } = body as { training_id: number; instructor_ids: number[] };
-    const tid = training_id || (body as any).event_id;
+    const body = await req.json() as {
+      training_id?: number;
+      event_id?: number;
+      instructor_ids?: number[];
+    };
+    const { training_id, instructor_ids } = body;
+    const tid = training_id || body.event_id;
     if (!tid || !Array.isArray(instructor_ids)) {
       return NextResponse.json({ error: 'training_id and instructor_ids[] required' }, { status: 400 });
     }

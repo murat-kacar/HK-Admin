@@ -56,7 +56,7 @@ export default function AdminPagesPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!active) return;
+    if (!active) {return;}
     setSaving(true);
     const res = await fetch(`/api/pages/${active}`, {
       method: 'PUT',
@@ -73,7 +73,7 @@ export default function AdminPagesPage() {
     load();
   };
 
-  if (loading) return <div className="admin-loading"><span className="admin-spinner" /> Sayfalar taranıyor...</div>;
+  if (loading) {return <div className="admin-loading"><span className="admin-spinner" /> Sayfalar taranıyor...</div>;}
 
   if (active) {
     return (

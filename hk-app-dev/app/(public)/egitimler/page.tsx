@@ -26,7 +26,7 @@ export default async function TrainingsPage({ searchParams }: { searchParams: Pr
 
   try {
     const where: string[] = ["status = 'active'"];
-    const params: any[] = [];
+    const params: (string | number | boolean)[] = [];
 
     if (kategori) {
       params.push(kategori);

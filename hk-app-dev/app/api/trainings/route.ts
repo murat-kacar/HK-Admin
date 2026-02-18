@@ -37,8 +37,8 @@ type TrainingBody = {
   audience?: string;
   language?: string;
   agenda?: string;
-  faqs?: any;
-  metadata?: any;
+  faqs?: Array<{ question: string; answer: string }>;
+  metadata?: Record<string, unknown>;
   seo_title?: string;
   seo_description?: string;
   seo_keywords?: string;
@@ -100,11 +100,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body: TrainingBody = await req.json();
-    if (!body.title || body.title.trim().length < 3) return NextResponse.json({ error: 'Title is required and must be at least 3 characters' }, { status: 400 });
-    if (body.start_date && isNaN(Date.parse(body.start_date))) return NextResponse.json({ error: 'start_date must be a valid ISO date' }, { status: 400 });
+    if (!body.title || body.title.trim().length < 3) {return NextResponse.json({ error: 'Title is required and must be at least 3 characters' }, { status: 400 });}
+    if (body.start_date && isNaN(Date.parse(body.start_date))) {return NextResponse.json({ error: 'start_date must be a valid ISO date' }, { status: 400 });}
     const tags = (body.highlight_tags || []).filter((c) => VALID_CATEGORIES.includes(c as typeof VALID_CATEGORIES[number]));
     const slug = body.slug ? body.slug : slugify(body.title || '');
     
@@ -184,14 +184,14 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body: TrainingBody = await req.json();
-    if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    if (body.title && body.title.trim().length < 3) return NextResponse.json({ error: 'Title must be at least 3 characters' }, { status: 400 });
-    if (body.start_date && isNaN(Date.parse(body.start_date))) return NextResponse.json({ error: 'start_date must be a valid ISO date' }, { status: 400 });
+    if (!body.id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
+    if (body.title && body.title.trim().length < 3) {return NextResponse.json({ error: 'Title must be at least 3 characters' }, { status: 400 });}
+    if (body.start_date && isNaN(Date.parse(body.start_date))) {return NextResponse.json({ error: 'start_date must be a valid ISO date' }, { status: 400 });}
     const existing = await query('SELECT * FROM trainings WHERE id=$1 LIMIT 1', [body.id]);
-    if (existing.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (existing.rows.length === 0) {return NextResponse.json({ error: 'Not found' }, { status: 404 });}
     const cur = existing.rows[0];
     const tags = body.highlight_tags !== undefined
       ? (body.highlight_tags || []).filter((c) => VALID_CATEGORIES.includes(c as typeof VALID_CATEGORIES[number]))
@@ -264,11 +264,11 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
   try {
     const body = await req.json();
     const id = body.id;
-    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
     await query('DELETE FROM trainings WHERE id=$1', [id]);
     return NextResponse.json({ success: true });
   } catch (err) {

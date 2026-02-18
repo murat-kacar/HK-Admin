@@ -62,14 +62,14 @@ export default function AdminApplicationsPage() {
   ];
 
   const badgeStyles = (s: string) => {
-    if (s === 'approved') return { background: '#dcfce7', color: '#15803d' };
-    if (s === 'rejected') return { background: '#fee2e2', color: '#dc2626' };
+    if (s === 'approved') {return { background: '#dcfce7', color: '#15803d' };}
+    if (s === 'rejected') {return { background: '#fee2e2', color: '#dc2626' };}
     return { background: '#fef9c3', color: '#a16207' };
   };
 
   const statusLabel = (s: string) => {
-    if (s === 'approved') return 'Onaylı';
-    if (s === 'rejected') return 'Reddedilen';
+    if (s === 'approved') {return 'Onaylı';}
+    if (s === 'rejected') {return 'Reddedilen';}
     return 'Bekliyor';
   };
 

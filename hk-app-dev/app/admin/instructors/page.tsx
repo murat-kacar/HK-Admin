@@ -69,7 +69,7 @@ export default function AdminInstructorsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Bu eğitmeni silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu eğitmeni silmek istediğinize emin misiniz?')) {return;}
     const res = await fetch('/api/instructors', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -82,7 +82,7 @@ export default function AdminInstructorsPage() {
 
   const handleMove = async (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= items.length) return;
+    if (targetIndex < 0 || targetIndex >= items.length) {return;}
 
     const newItems = [...items];
     const current = { ...newItems[index] };

@@ -7,10 +7,10 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { username, password } = body;
-    if (!username || !password) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    if (!username || !password) {return NextResponse.json({ error: 'Missing fields' }, { status: 400 });}
 
     const res = await query('SELECT * FROM users WHERE username = $1 LIMIT 1', [username]);
-    if (res.rows.length === 0) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (res.rows.length === 0) {return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });}
 
     const user = res.rows[0];
     const ok = await verifyPassword(password, user.password_hash);

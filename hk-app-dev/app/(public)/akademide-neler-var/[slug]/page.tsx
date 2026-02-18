@@ -18,7 +18,35 @@ interface EventData {
   location: string | null;
   image_url: string | null;
   slug: string;
-  metadata?: any;
+  metadata?: EventMetadata;
+}
+
+interface FeaturedFilm {
+  title: string;
+  year?: string;
+  awards?: string[];
+}
+
+interface PastPerformance {
+  venue?: string;
+  date?: string;
+}
+
+interface EventMetadata {
+  author?: string;
+  translator?: string;
+  director?: string;
+  guest?: string;
+  guest_team?: string;
+  artist?: string;
+  duration?: string;
+  is_free?: boolean;
+  actors?: string[];
+  crew?: string[];
+  featured_films?: FeaturedFilm[];
+  past_performances?: PastPerformance[];
+  highlights?: string[];
+  [key: string]: unknown;
 }
 
 async function getEvent(slug: string) {
@@ -39,7 +67,7 @@ async function getEvent(slug: string) {
 }
 
 function formatDate(dateStr: string | null) {
-  if (!dateStr) return '';
+  if (!dateStr) {return '';}
   const date = new Date(dateStr);
   return new Intl.DateTimeFormat('tr-TR', {
     day: 'numeric',
@@ -51,8 +79,8 @@ function formatDate(dateStr: string | null) {
 }
 
 function formatDateRange(startDate: string | null, endDate: string | null) {
-  if (!startDate) return '';
-  if (!endDate) return formatDate(startDate);
+  if (!startDate) {return '';}
+  if (!endDate) {return formatDate(startDate);}
   
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -256,7 +284,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
               <div className="mb-20">
                 <h2 className="text-sm font-black uppercase tracking-[0.3em] text-sky-600 mb-6">ÖZEL SALINSıN OLAN FİLMLER</h2>
                 <div className="space-y-6">
-                  {event.metadata.featured_films.map((film: any, idx: number) => (
+                  {event.metadata.featured_films.map((film: FeaturedFilm, idx: number) => (
                     <div key={idx} className="border-l-4 border-sky-600 pl-6 py-2">
                       <p className="text-lg font-black text-neutral-900">{film.title}</p>
                       {film.year && <p className="text-sm text-neutral-500">{film.year}</p>}
@@ -280,7 +308,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
               <div className="mb-20">
                 <h2 className="text-sm font-black uppercase tracking-[0.3em] text-sky-600 mb-6">GEÇMIŞ GÖSTERİMLER</h2>
                 <div className="space-y-4">
-                  {event.metadata.past_performances.map((perf: any, idx: number) => (
+                  {event.metadata.past_performances.map((perf: PastPerformance, idx: number) => (
                     <div key={idx} className="bg-neutral-50 p-4 rounded-lg">
                       <p className="font-bold text-neutral-900">{perf.venue || 'Mekan'}</p>
                       {perf.date && <p className="text-sm text-neutral-500">{perf.date}</p>}

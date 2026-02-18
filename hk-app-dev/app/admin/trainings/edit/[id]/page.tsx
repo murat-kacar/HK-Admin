@@ -22,13 +22,65 @@ const TRAINING_TYPES = [
   { value: 'Diğer', label: 'Diğer' },
 ];
 
+interface InstructorOption {
+  id: number;
+  name: string;
+}
+
+interface TrainingForm {
+  title: string;
+  event_type: string;
+  slug: string;
+  summary: string;
+  duration: string;
+  level: string;
+  timing: string;
+  description: string;
+  detail_content: string;
+  poster_image: string;
+  display_order: number;
+  highlight_tags: string[];
+  is_featured: boolean;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  is_online: boolean;
+  online_url: string;
+  is_free: boolean;
+  price: string | number;
+  capacity: string | number;
+  registration_url: string;
+  ticketing_url: string;
+  biletleme_sistemi: string;
+  audience: string;
+  language: string;
+  agenda: string;
+  faqs: unknown[];
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
+  metadata: Record<string, unknown>;
+  instructor_ids: number[];
+}
+
+type MediaItem = {
+  id: number;
+  media_type: string;
+  url: string;
+  thumbnail_url: string | null;
+  original_name: string;
+  display_order: number;
+};
+
 export default function TrainingEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [instructors, setInstructors] = useState<any[]>([]);
-  const [form, setForm] = useState<any>({
+  const [instructors, setInstructors] = useState<InstructorOption[]>([]);
+  const [form, setForm] = useState<TrainingForm>({
     title: '',
     event_type: 'Eğitim',
     slug: '',
@@ -65,7 +117,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
     metadata: { gains: [] },
     instructor_ids: []
   });
-  const [media, setMedia] = useState<any[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [errors, setErrors] = useState<string | null>(null);
   const toast = useToast();
 
@@ -102,7 +154,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
         data.faqs = data.faqs || [];
 
         // Set instructor IDs from the joined data
-        const instIds = data.instructors?.map((i: any) => i.id) || [];
+        const instIds = data.instructors?.map((instructor: InstructorOption) => instructor.id) || [];
         setForm({ ...data, instructor_ids: instIds });
       })
       .catch((err) => console.error(err))
@@ -137,7 +189,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
   };
 
   const toggleInstructor = (instId: number) => {
-    setForm((prev: any) => {
+    setForm((prev) => {
       const ids = [...(prev.instructor_ids || [])];
       if (ids.includes(instId)) {
         return { ...prev, instructor_ids: ids.filter(i => i !== instId) };
@@ -148,7 +200,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
   };
 
   const toggleTag = (tag: string) => {
-    setForm((prev: any) => {
+    setForm((prev) => {
       const tags = [...(prev.highlight_tags || [])];
       if (tags.includes(tag)) {
         return { ...prev, highlight_tags: tags.filter(t => t !== tag) };
@@ -158,7 +210,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
     });
   };
 
-  if (loading) return <div className="admin-loading"><span className="admin-spinner" /> Yükleniyor...</div>;
+  if (loading) {return <div className="admin-loading"><span className="admin-spinner" /> Yükleniyor...</div>;}
 
   return (
     <div className="admin-container">

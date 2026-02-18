@@ -18,7 +18,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       WHERE t.slug = $1
       LIMIT 1
     `, [slug]);
-    if (res.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (res.rows.length === 0) {return NextResponse.json({ error: 'Not found' }, { status: 404 });}
 
     const training = res.rows[0];
 

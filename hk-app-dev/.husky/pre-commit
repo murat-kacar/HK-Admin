@@ -1,0 +1,3 @@
+npm run check:paths
+npm run lint:strict
+npm run typecheck

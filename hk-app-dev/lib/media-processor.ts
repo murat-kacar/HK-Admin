@@ -265,7 +265,7 @@ export async function processVideo(
 function getVideoMetadata(inputPath: string): Promise<{ duration?: number; width?: number; height?: number }> {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(inputPath, (err, metadata) => {
-      if (err) return reject(err);
+      if (err) {return reject(err);}
       const videoStream = metadata.streams.find(s => s.codec_type === 'video');
       resolve({
         duration: metadata.format.duration,

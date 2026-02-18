@@ -58,7 +58,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
 
   // File selected → open cropper for images, direct upload for videos
   const handleFileSelect = useCallback((files: FileList | null, mediaType: 'cover' | 'photo' | 'video') => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {return;}
     const file = files[0];
 
     if (mediaType === 'video') {
@@ -77,7 +77,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
   }, [uploadFile]);
 
   const handleCropComplete = async (_croppedArea: Area, croppedAreaPixels: Area) => {
-    if (!cropFile) return;
+    if (!cropFile) {return;}
     setCropSrc(null);
 
     const fd = new FormData();
@@ -108,7 +108,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
   
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Bu medyayı silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu medyayı silmek istediğinize emin misiniz?')) {return;}
     setDeleting(id);
     try {
       await fetch('/api/media', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });

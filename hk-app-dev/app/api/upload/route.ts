@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { query } from '@/lib/db';
 import { processImage, processVideo } from '@/lib/media-processor';
+import type { ImageVariants, VideoVariants } from '@/lib/media-processor';
 import path from 'path';
 
 const MAX_PHOTO_SIZE = 10 * 1024 * 1024;  // 10MB
@@ -17,7 +18,7 @@ const VALID_MEDIA_TYPES = ['photo', 'video', 'cover'];
 
 export async function POST(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
 
   try {
     const formData = await req.formData();
@@ -32,17 +33,17 @@ export async function POST(req: Request) {
     const cropW = parseInt(formData.get('crop_width') as string) || 0;
     const cropH = parseInt(formData.get('crop_height') as string) || 0;
 
-    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    if (!entityType || !VALID_ENTITIES.includes(entityType)) return NextResponse.json({ error: 'Invalid entity_type' }, { status: 400 });
-    if (!entityId) return NextResponse.json({ error: 'Missing entity_id' }, { status: 400 });
-    if (!VALID_MEDIA_TYPES.includes(mediaType)) return NextResponse.json({ error: 'Invalid media_type' }, { status: 400 });
+    if (!file) {return NextResponse.json({ error: 'No file provided' }, { status: 400 });}
+    if (!entityType || !VALID_ENTITIES.includes(entityType)) {return NextResponse.json({ error: 'Invalid entity_type' }, { status: 400 });}
+    if (!entityId) {return NextResponse.json({ error: 'Missing entity_id' }, { status: 400 });}
+    if (!VALID_MEDIA_TYPES.includes(mediaType)) {return NextResponse.json({ error: 'Invalid media_type' }, { status: 400 });}
 
     const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
     const isImage = ALLOWED_IMAGE_TYPES.includes(file.type);
 
-    if (!isImage && !isVideo) return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
-    if (isImage && file.size > MAX_PHOTO_SIZE) return NextResponse.json({ error: 'Image too large (max 10MB)' }, { status: 400 });
-    if (isVideo && file.size > MAX_VIDEO_SIZE) return NextResponse.json({ error: 'Video too large (max 100MB)' }, { status: 400 });
+    if (!isImage && !isVideo) {return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });}
+    if (isImage && file.size > MAX_PHOTO_SIZE) {return NextResponse.json({ error: 'Image too large (max 10MB)' }, { status: 400 });}
+    if (isVideo && file.size > MAX_VIDEO_SIZE) {return NextResponse.json({ error: 'Video too large (max 100MB)' }, { status: 400 });}
 
     // Check limits
     const dbMediaType = isVideo ? 'video' : mediaType;
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       );
       const cnt = parseInt(countRes.rows[0].cnt);
       const limit = isVideo ? VIDEO_LIMIT : PHOTO_LIMIT;
-      if (cnt >= limit) return NextResponse.json({ error: `Limit reached (max ${limit} ${dbMediaType}s)` }, { status: 400 });
+      if (cnt >= limit) {return NextResponse.json({ error: `Limit reached (max ${limit} ${dbMediaType}s)` }, { status: 400 });}
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
     let width: number | null = null;
     let height: number | null = null;
     let fileSize: number;
-    let variants: Record<string, any> = {};
+    let variants: ImageVariants | VideoVariants | null = null;
 
     if (isImage) {
       // Use new media processor for images

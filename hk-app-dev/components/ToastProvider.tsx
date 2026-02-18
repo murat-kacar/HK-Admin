@@ -7,7 +7,7 @@ const ToastContext = createContext<{ toast: (t: Omit<Toast,'id'>)=>void } | null
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within ToastProvider');
+  if (!ctx) {throw new Error('useToast must be used within ToastProvider');}
   return ctx;
 }
 
@@ -20,7 +20,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   }, []);
 
   useEffect(() => {
-    if (!toasts.length) return;
+    if (!toasts.length) {return;}
     const timers = toasts.map((t) => setTimeout(() => {
       setToasts((s) => s.filter(x => x.id !== t.id));
     }, 4500));

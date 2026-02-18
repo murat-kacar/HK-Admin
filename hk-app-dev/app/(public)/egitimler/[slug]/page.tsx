@@ -48,7 +48,7 @@ export default function TrainingDetailPage({ params }: { params: Promise<{ slug:
         const j = await res.json();
         if (j.data) {
           const training = j.data;
-          if (typeof training.metadata === 'string') training.metadata = JSON.parse(training.metadata);
+          if (typeof training.metadata === 'string') {training.metadata = JSON.parse(training.metadata);}
           setData(training);
           setInstructors(training.instructors || []);
         }
@@ -65,7 +65,7 @@ export default function TrainingDetailPage({ params }: { params: Promise<{ slug:
   useEffect(() => {
     if (shouldApply && !loading) {
       const el = document.getElementById('apply-section');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) {el.scrollIntoView({ behavior: 'smooth' });}
     }
   }, [shouldApply, loading]);
 
@@ -77,7 +77,7 @@ export default function TrainingDetailPage({ params }: { params: Promise<{ slug:
     );
   }
 
-  if (!data) return notFound();
+  if (!data) {return notFound();}
 
   return (
     <main className="bg-white min-h-screen">

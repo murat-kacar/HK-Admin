@@ -4,8 +4,8 @@ import { requireAuth } from '@/lib/api-auth';
 import { deleteFromStorage } from '@/lib/storage';
 
 function getStorageKeyFromUrl(value: string | null | undefined): string | null {
-  if (!value) return null;
-  if (value.startsWith('/uploads/')) return value.replace('/uploads/', '');
+  if (!value) {return null;}
+  if (value.startsWith('/uploads/')) {return value.replace('/uploads/', '');}
 
   try {
     const parsed = new URL(value);
@@ -16,14 +16,14 @@ function getStorageKeyFromUrl(value: string | null | undefined): string | null {
 }
 
 function collectVariantKeys(variants: unknown): string[] {
-  if (!variants || typeof variants !== 'object') return [];
+  if (!variants || typeof variants !== 'object') {return [];}
 
   const keys = new Set<string>();
   const walk = (node: unknown) => {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object') {return;}
 
     if (Array.isArray(node)) {
-      for (const item of node) walk(item);
+      for (const item of node) {walk(item);}
       return;
     }
 
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
   const entityType = url.searchParams.get('entity_type');
   const entityId = url.searchParams.get('entity_id');
 
-  if (!entityType || !entityId) return NextResponse.json({ error: 'Missing entity_type or entity_id' }, { status: 400 });
+  if (!entityType || !entityId) {return NextResponse.json({ error: 'Missing entity_type or entity_id' }, { status: 400 });}
 
   try {
     const res = await query(
@@ -65,13 +65,13 @@ export async function GET(req: Request) {
 // PUT: reorder media
 export async function PUT(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
 
   try {
     const body = await req.json();
     // body: { items: [{ id: number, display_order: number }] }
     const items = body.items as { id: number; display_order: number }[];
-    if (!items || !Array.isArray(items)) return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+    if (!items || !Array.isArray(items)) {return NextResponse.json({ error: 'Invalid body' }, { status: 400 });}
 
     for (const item of items) {
       await query('UPDATE media SET display_order=$1 WHERE id=$2', [item.display_order, item.id]);
@@ -86,16 +86,16 @@ export async function PUT(req: Request) {
 // DELETE: remove media
 export async function DELETE(req: Request) {
   const authError = await requireAuth(req);
-  if (authError) return authError;
+  if (authError) {return authError;}
 
   try {
     const body = await req.json();
     const id = body.id as number;
-    if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+    if (!id) {return NextResponse.json({ error: 'Missing id' }, { status: 400 });}
 
     // Get file info before deleting
     const res = await query('SELECT url, thumbnail_url, variants FROM media WHERE id=$1', [id]);
-    if (res.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (res.rows.length === 0) {return NextResponse.json({ error: 'Not found' }, { status: 404 });}
 
     const { url: fileUrl, thumbnail_url: thumbUrl, variants } = res.rows[0];
 

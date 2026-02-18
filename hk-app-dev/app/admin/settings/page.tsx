@@ -40,7 +40,7 @@ export default function AdminSettingsPage() {
     toast?.toast({ title: 'Başarılı', description: 'Tüm ayarlar başarıyla güncellendi.', type: 'success' });
   };
 
-  if (loading) return <div className="admin-loading"><span className="admin-spinner" /> Sistem taranıyor...</div>;
+  if (loading) {return <div className="admin-loading"><span className="admin-spinner" /> Sistem taranıyor...</div>;}
 
   return (
     <div style={{ maxWidth: 800 }}>

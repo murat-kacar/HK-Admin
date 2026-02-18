@@ -8,7 +8,7 @@ async function migrate() {
 
     await client.connect();
     try {
-        console.log('Renaming tables and columns...');
+        process.stdout.write('Renaming tables and columns...\n');
 
         // 1. Rename junction table
         await client.query('ALTER TABLE event_instructors RENAME TO training_instructors');
@@ -22,7 +22,7 @@ async function migrate() {
         await client.query('ALTER TABLE applications RENAME COLUMN event_date TO training_date');
         await client.query('ALTER TABLE applications RENAME COLUMN event_title TO training_title');
 
-        console.log('Migration successful!');
+        process.stdout.write('Migration successful!\n');
     } catch (err) {
         console.error('Migration failed:', err.message);
     } finally {
