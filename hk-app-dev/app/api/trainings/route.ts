@@ -10,19 +10,38 @@ type TrainingBody = {
   id?: number;
   title: string;
   description?: string;
+  summary?: string;
+  detail_content?: string;
   event_type?: string;
   start_date?: string;
   end_date?: string;
+  start_time?: string;
+  end_time?: string;
   location?: string;
+  is_online?: boolean;
+  online_url?: string;
+  is_free?: boolean;
+  price?: number;
+  capacity?: number;
+  registration_url?: string;
+  ticketing_url?: string;
+  biletleme_sistemi?: string;
   poster_image?: string;
   slug?: string;
   highlight_tags?: string[];
+  is_featured?: boolean;
   display_order?: number;
   duration?: string;
   level?: string;
   timing?: string;
-  detail_content?: string;
+  audience?: string;
+  language?: string;
+  agenda?: string;
+  faqs?: any;
   metadata?: any;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
   instructor_ids?: number[];
 };
 
@@ -97,24 +116,53 @@ export async function POST(req: Request) {
     }
     
     const res = await query(
-      `INSERT INTO trainings (title, description, event_type, start_date, end_date, location, poster_image, slug, highlight_tags, display_order, duration, level, timing, detail_content, metadata, status) 
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'active') RETURNING *`,
+      `INSERT INTO trainings (
+        title, slug, summary, description, detail_content, event_type,
+        start_date, end_date, start_time, end_time,
+        location, is_online, online_url,
+        is_free, price, capacity, registration_url, ticketing_url, biletleme_sistemi,
+        poster_image, highlight_tags, is_featured, display_order,
+        duration, level, timing, audience, language, agenda, faqs, metadata,
+        seo_title, seo_description, seo_keywords, status
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,
+        $20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,'active'
+      ) RETURNING *`,
       [
         body.title,
+        slug,
+        body.summary || null,
         body.description || null,
+        body.detail_content || null,
         body.event_type || null,
         body.start_date || null,
         body.end_date || null,
+        body.start_time || null,
+        body.end_time || null,
         body.location || null,
+        body.is_online || false,
+        body.online_url || null,
+        body.is_free !== undefined ? body.is_free : true,
+        body.price || null,
+        body.capacity || null,
+        body.registration_url || null,
+        body.ticketing_url || null,
+        body.biletleme_sistemi || null,
         body.poster_image || null,
-        slug,
         tags,
-        displayOrder,
+        body.is_featured || false,
+        displayOrder ?? 0,
         body.duration || null,
         body.level || null,
         body.timing || null,
-        body.detail_content || null,
+        body.audience || null,
+        body.language || 'Türkçe',
+        body.agenda || null,
+        body.faqs ? JSON.stringify(body.faqs) : null,
         JSON.stringify(body.metadata || {}),
+        body.seo_title || null,
+        body.seo_description || null,
+        body.seo_keywords || null
       ]
     );
 
@@ -150,29 +198,52 @@ export async function PUT(req: Request) {
       : cur.highlight_tags;
     const slug = body.slug ? body.slug : slugify(body.title || cur.title || '');
     const res = await query(
-      `UPDATE trainings SET 
-        title=$1, description=$2, event_type=$3, start_date=$4, end_date=$5, 
-        location=$6, poster_image=$7, slug=$8, highlight_tags=$9, display_order=$10, 
-        duration=$11, level=$12, timing=$13, detail_content=$14, metadata=$15,
-        updated_at=NOW() 
-       WHERE id=$16 RETURNING *`,
+      `UPDATE trainings SET
+        title=$1, slug=$2, summary=$3, description=$4, detail_content=$5, event_type=$6,
+        start_date=$7, end_date=$8, start_time=$9, end_time=$10,
+        location=$11, is_online=$12, online_url=$13,
+        is_free=$14, price=$15, capacity=$16, registration_url=$17, ticketing_url=$18, biletleme_sistemi=$19,
+        poster_image=$20, highlight_tags=$21, is_featured=$22, display_order=$23,
+        duration=$24, level=$25, timing=$26, audience=$27, language=$28, agenda=$29, faqs=$30, metadata=$31,
+        seo_title=$32, seo_description=$33, seo_keywords=$34,
+        updated_at=NOW()
+       WHERE id=$35 RETURNING *`,
       [
         body.title || cur.title,
+        slug,
+        body.summary ?? cur.summary,
         body.description ?? cur.description,
+        body.detail_content ?? cur.detail_content,
         body.event_type || cur.event_type,
         body.start_date || cur.start_date,
         body.end_date || cur.end_date,
+        body.start_time ?? cur.start_time,
+        body.end_time ?? cur.end_time,
         body.location || cur.location,
+        body.is_online ?? cur.is_online,
+        body.online_url ?? cur.online_url,
+        body.is_free ?? cur.is_free,
+        body.price ?? cur.price,
+        body.capacity ?? cur.capacity,
+        body.registration_url ?? cur.registration_url,
+        body.ticketing_url ?? cur.ticketing_url,
+        body.biletleme_sistemi ?? cur.biletleme_sistemi,
         body.poster_image || cur.poster_image,
-        slug,
         tags,
+        body.is_featured ?? cur.is_featured,
         body.display_order ?? cur.display_order,
         body.duration ?? cur.duration,
         body.level ?? cur.level,
         body.timing ?? cur.timing,
-        body.detail_content ?? cur.detail_content,
+        body.audience ?? cur.audience,
+        body.language ?? cur.language,
+        body.agenda ?? cur.agenda,
+        body.faqs ? JSON.stringify(body.faqs) : cur.faqs,
         JSON.stringify(body.metadata ?? cur.metadata),
-        body.id
+        body.seo_title ?? cur.seo_title,
+        body.seo_description ?? cur.seo_description,
+        body.seo_keywords ?? cur.seo_keywords,
+        body.id,
       ]
     );
 

@@ -22,6 +22,20 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
       linkedin: '',
       website: ''
     },
+    platform_links: {
+      imdb: '',
+      youtube: '',
+      google_business: '',
+      meta_page: '',
+      yandex: '',
+      biletix: '',
+      biletinial: '',
+      tiyatrolar_net: '',
+      sinemalar_com: ''
+    },
+    seo_title: '',
+    seo_description: '',
+    seo_keywords: '',
     show_on_homepage: false,
     show_on_hero_showcase: false,
     display_order: 0
@@ -49,12 +63,27 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
         if (typeof data.social_links === 'string') {
           try { data.social_links = JSON.parse(data.social_links); } catch { data.social_links = {}; }
         }
+        if (typeof data.platform_links === 'string') {
+          try { data.platform_links = JSON.parse(data.platform_links); } catch { data.platform_links = {}; }
+        }
         // Ensure defaults for social links
         data.social_links = {
           instagram: data.social_links?.instagram || '',
           twitter: data.social_links?.twitter || '',
           linkedin: data.social_links?.linkedin || '',
           website: data.social_links?.website || '',
+        };
+        // Ensure defaults for platform links
+        data.platform_links = {
+          imdb: data.platform_links?.imdb || '',
+          youtube: data.platform_links?.youtube || '',
+          google_business: data.platform_links?.google_business || '',
+          meta_page: data.platform_links?.meta_page || '',
+          yandex: data.platform_links?.yandex || '',
+          biletix: data.platform_links?.biletix || '',
+          biletinial: data.platform_links?.biletinial || '',
+          tiyatrolar_net: data.platform_links?.tiyatrolar_net || '',
+          sinemalar_com: data.platform_links?.sinemalar_com || '',
         };
         setForm(data);
       })
@@ -103,7 +132,7 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem', alignItems: 'start' }}>
+      <div className="admin-grid-sidebar-sm">
 
         {/* ── SOL KOLON (Ana İçerik) ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -115,7 +144,7 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
               Temel Profil
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <label className="admin-label">Eğitmen İsmi *</label>
                 <input className="admin-input" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
@@ -162,6 +191,63 @@ export default function InstructorEditPage({ params }: { params: Promise<{ id: s
                 } catch { /* sessizce bekle */ }
               }}
             ></textarea>
+          </div>
+
+          {/* SEO */}
+          <div className="admin-card">
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '4px', height: '16px', background: 'hsl(var(--primary))', borderRadius: '2px' }}></span>
+              SEO
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="admin-label">Sayfa Başlığı (title tag)</label>
+                <input className="admin-input" placeholder="Örn: Hakan Karşak | Pantomim Sanatçısı" value={form.seo_title || ''} onChange={(e) => setForm({ ...form, seo_title: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Meta Açıklama</label>
+                <textarea className="admin-textarea" rows={3} placeholder="Google, Yandex ve sosyal medya paylaşımlarında görünen kısa açıklama..." value={form.seo_description || ''} onChange={(e) => setForm({ ...form, seo_description: e.target.value })} />
+                <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.25rem' }}>Önerilen: 120–160 karakter</p>
+              </div>
+              <div>
+                <label className="admin-label">Anahtar Kelimeler</label>
+                <input className="admin-input" placeholder="pantomim, tiyatro, istanbul, eğitmen" value={form.seo_keywords || ''} onChange={(e) => setForm({ ...form, seo_keywords: e.target.value })} />
+                <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.25rem' }}>Virgülle ayırın</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Linkleri */}
+          <div className="admin-card">
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '4px', height: '16px', background: 'hsl(var(--primary))', borderRadius: '2px' }}></span>
+              Platform Linkleri
+            </h3>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1rem' }}>IMDb, Biletix, YouTube gibi sektör platformlarındaki profil/sayfa linkleri.</p>
+            <div className="admin-grid-2">
+              {([
+                ['imdb', 'IMDb'],
+                ['youtube', 'YouTube'],
+                ['google_business', 'Google Business'],
+                ['meta_page', 'Meta (Facebook) Sayfası'],
+                ['yandex', 'Yandex'],
+                ['biletix', 'Biletix'],
+                ['biletinial', 'Biletinial'],
+                ['tiyatrolar_net', 'Tiyatrolar.net'],
+                ['sinemalar_com', 'Sinemalar.com'],
+              ] as [string, string][]).map(([key, label]) => (
+                <div key={key}>
+                  <label className="admin-label">{label}</label>
+                  <input
+                    className="admin-input"
+                    style={{ fontSize: '0.75rem' }}
+                    placeholder="https://..."
+                    value={form.platform_links?.[key] || ''}
+                    onChange={(e) => setForm({ ...form, platform_links: { ...form.platform_links, [key]: e.target.value } })}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Medya Galerisi */}

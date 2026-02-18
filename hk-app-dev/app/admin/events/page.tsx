@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ToastProvider';
 
@@ -37,10 +38,11 @@ export default function AdminEventsPage() {
   const [items, setItems] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', event_type: 'Film Gösterimi', start_date: '', display_order: 0, highlight_tags: [] as string[] });
+  const [form, setForm] = useState({ title: '', event_type: 'Film Gösterimi', start_date: '', start_time: '', location: '', display_order: 0, highlight_tags: [] as string[] });
   const [errors, setErrors] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const toast = useToast();
+  const router = useRouter();
 
   const load = async () => {
     setLoading(true);
@@ -73,10 +75,14 @@ export default function AdminEventsPage() {
       toast?.toast({ title: 'Hata', description: msg, type: 'error' });
       return;
     }
-    toast?.toast({ title: 'Oluşturuldu', description: 'Etkinlik başarıyla eklendi.', type: 'success' });
-    setForm({ title: '', event_type: 'Film Gösterimi', start_date: '', display_order: 0, highlight_tags: [] });
-    setShowForm(false);
-    load();
+    toast?.toast({ title: 'Oluşturuldu', description: 'Etkinlik oluşturuldu, detaylar için yönlendiriliyorsunuz.', type: 'success' });
+    if (j.data?.id) {
+      router.push(`/admin/events/edit/${j.data.id}`);
+    } else {
+      setForm({ title: '', event_type: 'Film Gösterimi', start_date: '', start_time: '', location: '', display_order: 0, highlight_tags: [] });
+      setShowForm(false);
+      load();
+    }
   };
 
   const toggleTag = (tag: string) => {
@@ -187,21 +193,20 @@ export default function AdminEventsPage() {
 
   return (
     <div>
-      {/* Page Actions */}
-      <div style={{ position: 'absolute', top: '2.5rem', right: '3rem' }} className="md:block hidden">
-        <button 
-          className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`} 
+      {/* Desktop action button */}
+      <div className="admin-page-action-desktop">
+        <button
+          className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`}
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? 'Vazgeç' : '+ Yeni Etkinlik'}
         </button>
       </div>
 
-      {/* Mobile Action */}
-      <div className="md:hidden block" style={{ marginBottom: '1.5rem' }}>
-        <button 
-          className="admin-btn admin-btn-primary" 
-          style={{ width: '100%' }} 
+      {/* Mobile action bar */}
+      <div className="admin-mobile-action-bar">
+        <button
+          className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`}
           onClick={() => setShowForm(!showForm)}
         >
           {showForm ? 'İptal' : '+ Yeni Etkinlik Ekle'}
@@ -215,50 +220,46 @@ export default function AdminEventsPage() {
             Yeni Etkinlik Kaydı
           </h3>
           <form onSubmit={handleCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <label className="admin-label">Etkinlik Başlığı *</label>
-                <input 
-                  className="admin-input" 
-                  placeholder="Örn: Film Gösterimi ve Söyleşi" 
-                  value={form.title} 
-                  onChange={(e) => setForm({ ...form, title: e.target.value })} 
-                  required 
+                <input
+                  className="admin-input"
+                  placeholder="Örn: Film Gösterimi ve Söyleşi"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  required
                 />
               </div>
               <div>
                 <label className="admin-label">Etkinlik Türü</label>
-                <select 
-                  className="admin-input" 
-                  value={form.event_type} 
-                  onChange={(e) => setForm({ ...form, event_type: e.target.value })}
-                >
+                <select className="admin-input" value={form.event_type} onChange={(e) => setForm({ ...form, event_type: e.target.value })}>
                   {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label className="admin-label">Başlangıç Tarihi</label>
-              <input 
-                type="date"
-                className="admin-input" 
-                value={form.start_date} 
-                onChange={(e) => setForm({ ...form, start_date: e.target.value })} 
-              />
+            <div className="admin-grid-3" style={{ marginBottom: '1.5rem' }}>
+              <div>
+                <label className="admin-label">Başlangıç Tarihi</label>
+                <input type="date" className="admin-input" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Saat</label>
+                <input type="time" className="admin-input" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Mekan</label>
+                <input className="admin-input" placeholder="Örn: Moda Sahnesi" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+              </div>
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label className="admin-label">Vitrin & Listeleme</label>
+              <label className="admin-label">Hangi listelerde gösterilsin?</label>
               <div style={{ display: 'flex', gap: '1.5rem' }}>
                 {CATEGORIES.map((tag) => (
                   <label key={tag.value} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={form.highlight_tags.includes(tag.value)} 
-                      onChange={() => toggleTag(tag.value)} 
-                      style={{ width: 18, height: 18 }} 
-                    />
+                    <input type="checkbox" checked={form.highlight_tags.includes(tag.value)} onChange={() => toggleTag(tag.value)} style={{ width: 18, height: 18 }} />
                     {tag.label}
                   </label>
                 ))}
@@ -268,11 +269,9 @@ export default function AdminEventsPage() {
             {errors && <div className="admin-error" style={{ marginBottom: '1.5rem' }}>{errors}</div>}
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button type="submit" disabled={creating} className="admin-btn admin-btn-primary">
-                {creating ? 'Oluşturuluyor...' : 'Etkinlik Kaydet'}
+                {creating ? 'Oluşturuluyor...' : 'Devam Et (Detaylara Geç)'}
               </button>
-              <button type="button" onClick={() => setShowForm(false)} className="admin-btn admin-btn-secondary">
-                Vazgeç
-              </button>
+              <button type="button" onClick={() => setShowForm(false)} className="admin-btn admin-btn-secondary">Vazgeç</button>
             </div>
           </form>
         </div>
@@ -307,10 +306,10 @@ export default function AdminEventsPage() {
               <thead>
                 <tr>
                   <th>Etkinlik Bilgisi</th>
-                  <th>Tarih</th>
-                  <th>Öne Çıkarma</th>
+                  <th className="hide-mobile">Tarih</th>
+                  <th className="hide-mobile">Öne Çıkarma</th>
                   <th>Durum</th>
-                  <th>Sıra</th>
+                  <th className="hide-mobile">Sıra</th>
                   <th style={{ textAlign: 'right' }}>İşlemler</th>
                 </tr>
               </thead>
@@ -367,12 +366,12 @@ export default function AdminEventsPage() {
                           </div>
                         </div>
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
                           {formatDate(it.start_date)}
                         </span>
                       </td>
-                      <td>{tagLabel(it.highlight_tags) || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontSize: '0.75rem' }}>Genel</span>}</td>
+                      <td className="hide-mobile">{tagLabel(it.highlight_tags) || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontSize: '0.75rem' }}>Genel</span>}</td>
                       <td>
                         <button
                           onClick={() => handleToggleActive(it)}
@@ -383,7 +382,7 @@ export default function AdminEventsPage() {
                           {it.is_active ? 'Aktif' : 'Pasif'}
                         </button>
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <button
@@ -433,15 +432,15 @@ export default function AdminEventsPage() {
                         </div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <Link 
-                            href={`/admin/events/edit/${it.id}`} 
+                        <div className="admin-table-actions" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                          <Link
+                            href={`/admin/events/edit/${it.id}`}
                             className="admin-btn admin-btn-secondary admin-btn-sm"
                           >
                             Düzenle
                           </Link>
-                          <button 
-                            onClick={() => handleDelete(it.id)} 
+                          <button
+                            onClick={() => handleDelete(it.id)}
                             className="admin-btn admin-btn-danger admin-btn-sm"
                           >
                             Sil

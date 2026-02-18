@@ -14,8 +14,12 @@ type InstructorBody = {
   email?: string;
   projects?: any;
   social_links?: any;
+  platform_links?: any;
   show_on_homepage?: boolean;
   show_on_hero_showcase?: boolean;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
 };
 
 export async function GET(req: Request) {
@@ -53,20 +57,24 @@ export async function POST(req: Request) {
     }
     
     const res = await query(
-      `INSERT INTO instructors (name, bio, photo, expertise, slug, display_order, email, projects, social_links, show_on_homepage, show_on_hero_showcase) 
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      `INSERT INTO instructors (name, bio, photo, expertise, slug, display_order, email, projects, social_links, platform_links, show_on_homepage, show_on_hero_showcase, seo_title, seo_description, seo_keywords)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
       [
         body.name,
         body.bio || null,
         body.photo || null,
         body.expertise || null,
         slug,
-        displayOrder,
+        displayOrder ?? 0,
         body.email || null,
         JSON.stringify(body.projects || []),
         JSON.stringify(body.social_links || {}),
+        body.platform_links ? JSON.stringify(body.platform_links) : null,
         body.show_on_homepage || false,
-        body.show_on_hero_showcase || false
+        body.show_on_hero_showcase || false,
+        body.seo_title || null,
+        body.seo_description || null,
+        body.seo_keywords || null
       ]
     );
     return NextResponse.json({ data: res.rows[0] }, { status: 201 });
@@ -88,10 +96,12 @@ export async function PUT(req: Request) {
     const cur = existing.rows[0];
     const slug = body.slug ? body.slug : slugify(body.name || cur.name || '');
     const res = await query(
-      `UPDATE instructors SET 
-        name=$1, bio=$2, photo=$3, expertise=$4, slug=$5, display_order=$6, 
-        email=$7, projects=$8, social_links=$9, show_on_homepage=$10, show_on_hero_showcase=$11 
-       WHERE id=$12 RETURNING *`,
+      `UPDATE instructors SET
+        name=$1, bio=$2, photo=$3, expertise=$4, slug=$5, display_order=$6,
+        email=$7, projects=$8, social_links=$9, platform_links=$10,
+        show_on_homepage=$11, show_on_hero_showcase=$12,
+        seo_title=$13, seo_description=$14, seo_keywords=$15
+        WHERE id=$16 RETURNING *`,
       [
         body.name || cur.name,
         body.bio ?? cur.bio,
@@ -102,8 +112,12 @@ export async function PUT(req: Request) {
         body.email ?? cur.email,
         JSON.stringify(body.projects ?? cur.projects),
         JSON.stringify(body.social_links ?? cur.social_links),
+        body.platform_links ? JSON.stringify(body.platform_links) : (cur.platform_links ?? null),
         body.show_on_homepage ?? cur.show_on_homepage,
         body.show_on_hero_showcase ?? cur.show_on_hero_showcase,
+        body.seo_title ?? cur.seo_title,
+        body.seo_description ?? cur.seo_description,
+        body.seo_keywords ?? cur.seo_keywords,
         body.id
       ]
     );

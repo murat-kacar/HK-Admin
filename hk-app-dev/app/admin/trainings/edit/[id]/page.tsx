@@ -32,6 +32,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
     title: '',
     event_type: 'Eğitim',
     slug: '',
+    summary: '',
     duration: '',
     level: '',
     timing: '',
@@ -40,9 +41,28 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
     poster_image: '',
     display_order: 0,
     highlight_tags: [],
-    metadata: {
-      gains: []
-    },
+    is_featured: false,
+    start_date: '',
+    end_date: '',
+    start_time: '',
+    end_time: '',
+    location: '',
+    is_online: false,
+    online_url: '',
+    is_free: true,
+    price: '',
+    capacity: '',
+    registration_url: '',
+    ticketing_url: '',
+    biletleme_sistemi: '',
+    audience: '',
+    language: 'Türkçe',
+    agenda: '',
+    faqs: [],
+    seo_title: '',
+    seo_description: '',
+    seo_keywords: '',
+    metadata: { gains: [] },
     instructor_ids: []
   });
   const [media, setMedia] = useState<any[]>([]);
@@ -76,6 +96,10 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
         if (!data.metadata?.gains) {
           data.metadata = { ...data.metadata, gains: data.metadata?.gains || [] };
         }
+        if (typeof data.faqs === 'string') {
+          try { data.faqs = JSON.parse(data.faqs); } catch { data.faqs = []; }
+        }
+        data.faqs = data.faqs || [];
 
         // Set instructor IDs from the joined data
         const instIds = data.instructors?.map((i: any) => i.id) || [];
@@ -149,7 +173,7 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
+      <div className="admin-grid-sidebar">
 
         {/* ── SOL KOLON (Ana İçerik) ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -161,14 +185,14 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
               Temel Bilgiler
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', marginBottom: '1.5rem' }}> {/* single col intentional */}
               <div>
                 <label className="admin-label">Eğitim Başlığı *</label>
                 <input className="admin-input" value={form.title || ''} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <label className="admin-label">Eğitim Türü</label>
                 <select className="admin-input" value={form.event_type || ''} onChange={(e) => setForm({ ...form, event_type: e.target.value })}>
@@ -187,7 +211,18 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label className="admin-label">Kısa Açıklama (Özet)</label>
+              <label className="admin-label">Kısa Özet (Kartlarda Görünür)</label>
+              <textarea
+                className="admin-textarea"
+                rows={2}
+                placeholder="Liste ve kart görünümlerinde çıkacak 1-2 cümlelik özet..."
+                value={form.summary || ''}
+                onChange={(e) => setForm({ ...form, summary: e.target.value })}
+              ></textarea>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label className="admin-label">Açıklama (Liste Sayfası)</label>
               <textarea
                 className="admin-textarea"
                 rows={2}
@@ -206,6 +241,130 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
                 value={form.detail_content || ''}
                 onChange={(e) => setForm({ ...form, detail_content: e.target.value })}
               ></textarea>
+            </div>
+          </div>
+
+          {/* Tarih, Saat & Konum */}
+          <div className="admin-card">
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '4px', height: '16px', background: 'hsl(var(--primary))', borderRadius: '2px' }}></span>
+              Tarih, Saat & Konum
+            </h3>
+            <div className="admin-grid-2" style={{ marginBottom: '1rem' }}>
+              <div>
+                <label className="admin-label">Başlangıç Tarihi</label>
+                <input type="date" className="admin-input" value={form.start_date || ''} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Bitiş Tarihi</label>
+                <input type="date" className="admin-input" value={form.end_date || ''} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Başlangıç Saati</label>
+                <input type="time" className="admin-input" value={form.start_time || ''} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Bitiş Saati</label>
+                <input type="time" className="admin-input" value={form.end_time || ''} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
+              </div>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label className="admin-label">Mekan</label>
+              <input className="admin-input" placeholder="Örn: Moda Sahnesi, İstanbul" value={form.location || ''} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+              <input type="checkbox" checked={form.is_online || false} onChange={(e) => setForm({ ...form, is_online: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+              Online / Hibrit Etkinlik
+            </label>
+            {form.is_online && (
+              <div>
+                <label className="admin-label">Online Katılım Linki</label>
+                <input className="admin-input" placeholder="https://zoom.us/..." value={form.online_url || ''} onChange={(e) => setForm({ ...form, online_url: e.target.value })} />
+              </div>
+            )}
+          </div>
+
+          {/* Hedef Kitle & Dil */}
+          <div className="admin-card">
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '4px', height: '16px', background: 'hsl(var(--primary))', borderRadius: '2px' }}></span>
+              Kitle & Program
+            </h3>
+            <div className="admin-grid-2" style={{ marginBottom: '1rem' }}>
+              <div>
+                <label className="admin-label">Hedef Kitle</label>
+                <input className="admin-input" placeholder="Örn: Yetişkin, Profesyonel, Herkes" value={form.audience || ''} onChange={(e) => setForm({ ...form, audience: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Dil</label>
+                <input className="admin-input" placeholder="Türkçe" value={form.language || ''} onChange={(e) => setForm({ ...form, language: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <label className="admin-label">Program Akışı (Agenda)</label>
+              <textarea className="admin-textarea" rows={4} placeholder="09:00 — Kayıt&#10;10:00 — Açılış Konuşması&#10;..." value={form.agenda || ''} onChange={(e) => setForm({ ...form, agenda: e.target.value })} />
+            </div>
+          </div>
+
+          {/* Kayıt & Biletleme */}
+          <div className="admin-card">
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '4px', height: '16px', background: 'hsl(var(--primary))', borderRadius: '2px' }}></span>
+              Kayıt & Biletleme
+            </h3>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              <input type="checkbox" checked={form.is_free || false} onChange={(e) => setForm({ ...form, is_free: e.target.checked })} style={{ width: '16px', height: '16px' }} />
+              Ücretsiz
+            </label>
+            {!form.is_free && (
+              <div className="admin-grid-2" style={{ marginBottom: '1rem' }}>
+                <div>
+                  <label className="admin-label">Fiyat (TRY)</label>
+                  <input type="number" className="admin-input" placeholder="0.00" value={form.price || ''} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+                </div>
+                <div>
+                  <label className="admin-label">Kontenjan</label>
+                  <input type="number" className="admin-input" placeholder="20" value={form.capacity || ''} onChange={(e) => setForm({ ...form, capacity: e.target.value })} />
+                </div>
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label className="admin-label">Kayıt Linki (Dış Kayıt Formu)</label>
+                <input className="admin-input" style={{ fontSize: '0.75rem' }} placeholder="https://forms.google.com/..." value={form.registration_url || ''} onChange={(e) => setForm({ ...form, registration_url: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Bilet Linki</label>
+                <input className="admin-input" style={{ fontSize: '0.75rem' }} placeholder="https://biletix.com/..." value={form.ticketing_url || ''} onChange={(e) => setForm({ ...form, ticketing_url: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Biletleme Sistemi</label>
+                <input className="admin-input" placeholder="Biletix, Biletinial, Passo..." value={form.biletleme_sistemi || ''} onChange={(e) => setForm({ ...form, biletleme_sistemi: e.target.value })} />
+              </div>
+            </div>
+          </div>
+
+          {/* SEO */}
+          <div className="admin-card">
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ width: '4px', height: '16px', background: 'hsl(var(--primary))', borderRadius: '2px' }}></span>
+              SEO
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="admin-label">Sayfa Başlığı (title tag)</label>
+                <input className="admin-input" placeholder="Örn: Pantomim Atölyesi | HK Akademi" value={form.seo_title || ''} onChange={(e) => setForm({ ...form, seo_title: e.target.value })} />
+              </div>
+              <div>
+                <label className="admin-label">Meta Açıklama</label>
+                <textarea className="admin-textarea" rows={3} placeholder="Google, Yandex ve sosyal medya paylaşımlarında görünen kısa açıklama..." value={form.seo_description || ''} onChange={(e) => setForm({ ...form, seo_description: e.target.value })} />
+                <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.25rem' }}>Önerilen: 120–160 karakter</p>
+              </div>
+              <div>
+                <label className="admin-label">Anahtar Kelimeler</label>
+                <input className="admin-input" placeholder="pantomim, atölye, tiyatro, istanbul" value={form.seo_keywords || ''} onChange={(e) => setForm({ ...form, seo_keywords: e.target.value })} />
+                <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.25rem' }}>Virgülle ayırın</p>
+              </div>
             </div>
           </div>
 
@@ -303,6 +462,15 @@ export default function TrainingEditPage({ params }: { params: Promise<{ id: str
                   style={{ width: '18px', height: '18px' }}
                 />
                 Hero Slider (Vitrin)
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.85rem' }}>
+                <input
+                  type="checkbox"
+                  checked={form.is_featured || false}
+                  onChange={(e) => setForm({ ...form, is_featured: e.target.checked })}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                Öne Çıkan (Featured)
               </label>
               <div style={{ marginTop: '0.5rem' }}>
                 <label className="admin-label">Sıralama (Display Order)</label>

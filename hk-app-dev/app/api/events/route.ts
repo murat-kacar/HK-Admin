@@ -113,7 +113,7 @@ export async function POST(req: Request) {
         body.content || null,
         JSON.stringify(body.metadata || {}),
         body.is_active !== undefined ? body.is_active : true,
-        displayOrder,
+        displayOrder ?? 0,
         tags
       ]
     );

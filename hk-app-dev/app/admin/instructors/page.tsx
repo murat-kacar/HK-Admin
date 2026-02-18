@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/components/ToastProvider';
 
@@ -13,14 +14,22 @@ interface InstructorItem {
   display_order: number;
 }
 
+type InstructorCreateForm = {
+  name: string;
+  expertise: string;
+  email: string;
+  display_order: number;
+};
+
 export default function AdminInstructorsPage() {
   const [items, setItems] = useState<InstructorItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', expertise: '', display_order: 0 });
+  const [form, setForm] = useState<InstructorCreateForm>({ name: '', expertise: '', email: '', display_order: 0 });
   const [errors, setErrors] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const toast = useToast();
+  const router = useRouter();
 
   const load = async () => {
     setLoading(true);
@@ -49,10 +58,14 @@ export default function AdminInstructorsPage() {
       toast?.toast({ title: 'Hata', description: msg, type: 'error' });
       return;
     }
-    toast?.toast({ title: 'Oluşturuldu', description: 'Eğitmen başarıyla eklendi.', type: 'success' });
-    setForm({ name: '', expertise: '', display_order: 0 });
-    setShowForm(false);
-    load();
+    toast?.toast({ title: 'Oluşturuldu', description: 'Eğitmen profili oluşturuldu, detaylar için yönlendiriliyorsunuz.', type: 'success' });
+    if (j.data?.id) {
+      router.push(`/admin/instructors/edit/${j.data.id}`);
+    } else {
+      setForm({ name: '', expertise: '', email: '', display_order: 0 });
+      setShowForm(false);
+      load();
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -111,16 +124,16 @@ export default function AdminInstructorsPage() {
 
   return (
     <div>
-      {/* Page Actions Integration */}
-      <div style={{ position: 'absolute', top: '2.5rem', right: '3rem' }} className="md:block hidden">
+      {/* Desktop action button */}
+      <div className="admin-page-action-desktop">
         <button className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`} onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Vazgeç' : '+ Yeni Eğitmen'}
         </button>
       </div>
 
-      {/* Mobile Action Button */}
-      <div className="md:hidden block" style={{ marginBottom: '1.5rem' }}>
-        <button className="admin-btn admin-btn-primary" style={{ width: '100%' }} onClick={() => setShowForm(!showForm)}>
+      {/* Mobile action bar */}
+      <div className="admin-mobile-action-bar">
+        <button className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`} onClick={() => setShowForm(!showForm)}>
           {showForm ? 'İptal' : '+ Yeni Eğitmen Ekle'}
         </button>
       </div>
@@ -130,7 +143,7 @@ export default function AdminInstructorsPage() {
         <div className="admin-card" style={{ marginBottom: '2.5rem', border: '2px solid var(--admin-accent)', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem' }}>Yeni Eğitmen Profilini Oluştur</h3>
           <form onSubmit={handleCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <label className="admin-label">Tam İsim *</label>
                 <input className="admin-input" placeholder="Örn: Hakan Karsak" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
@@ -138,6 +151,12 @@ export default function AdminInstructorsPage() {
               <div>
                 <label className="admin-label">Uzmanlık / Branş</label>
                 <input className="admin-input" placeholder="Örn: Oyunculuk, Yönetmen" value={form.expertise} onChange={(e) => setForm({ ...form, expertise: e.target.value })} />
+              </div>
+            </div>
+            <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
+              <div>
+                <label className="admin-label">E-posta</label>
+                <input type="email" className="admin-input" placeholder="ornek@email.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
               <div>
                 <label className="admin-label">Görünüm Sırası</label>
@@ -147,7 +166,7 @@ export default function AdminInstructorsPage() {
             {errors && <div className="admin-error" style={{ marginBottom: '1.5rem' }}>{errors}</div>}
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button type="submit" disabled={creating} className="admin-btn admin-btn-primary">
-                {creating ? 'Oluşturuluyor...' : 'Profili Kaydet'}
+                {creating ? 'Oluşturuluyor...' : 'Devam Et (Detaylara Geç)'}
               </button>
               <button type="button" onClick={() => setShowForm(false)} className="admin-btn admin-btn-secondary">İptal</button>
             </div>
@@ -172,9 +191,9 @@ export default function AdminInstructorsPage() {
               <thead>
                 <tr>
                   <th>Sanatçı Bilgisi</th>
-                  <th>Branş</th>
-                  <th>Sıra</th>
-                  <th>Bağlantı (Slug)</th>
+                  <th className="hide-mobile">Branş</th>
+                  <th className="hide-mobile">Sıra</th>
+                  <th className="hide-mobile">Bağlantı (Slug)</th>
                   <th style={{ textAlign: 'right' }}>İşlemler</th>
                 </tr>
               </thead>
@@ -205,10 +224,10 @@ export default function AdminInstructorsPage() {
                           <span style={{ fontWeight: 600, color: '#1e293b' }}>{it.name}</span>
                         </div>
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <span className="admin-badge admin-badge-info" style={{ background: '#f0fdf4', color: '#166534' }}>{it.expertise || 'Genel'}</span>
                       </td>
-                      <td>
+                      <td className="hide-mobile">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <button
@@ -231,9 +250,9 @@ export default function AdminInstructorsPage() {
                           <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', minWidth: '1.5rem', textAlign: 'center' }}>{it.display_order}</span>
                         </div>
                       </td>
-                      <td><code style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '0.2rem 0.4rem', borderRadius: '4px', color: '#64748b' }}>/{it.slug}</code></td>
+                      <td className="hide-mobile"><code style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '0.2rem 0.4rem', borderRadius: '4px', color: '#64748b' }}>/{it.slug}</code></td>
                       <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <div className="admin-table-actions" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                           <Link href={`/admin/instructors/edit/${it.id}`} className="admin-btn admin-btn-secondary admin-btn-sm">
                             Düzenle
                           </Link>

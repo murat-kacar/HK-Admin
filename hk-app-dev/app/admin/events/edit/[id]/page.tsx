@@ -45,11 +45,10 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
 
   useEffect(() => {
     // Fetch Event Data
-    fetch(`/api/events?limit=1000&includeInactive=true`)
+    fetch(`/api/events/id/${id}`)
       .then((r) => r.json())
       .then((j) => {
-        const events = j.data || [];
-        const event = events.find((e: any) => e.id === Number(id));
+        const event = j.data;
         if (event) {
           // Parse metadata if string
           if (typeof event.metadata === 'string') {
@@ -140,7 +139,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
+        <div className="admin-grid-sidebar">
 
           {/* SOL KOLON - Ana İçerik */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -172,7 +171,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
                 <div>
                   <label className="admin-label">Etkinlik Türü</label>
                   <select 
@@ -237,7 +236,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
                 Tarih & Lokasyon
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div className="admin-grid-2" style={{ marginBottom: '1.5rem' }}>
                 <div>
                   <label className="admin-label">Başlangıç Tarihi</label>
                   <input 

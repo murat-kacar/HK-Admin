@@ -175,15 +175,17 @@ export default function AdminShell({ username, children }: { username: string; c
 
       {/* Main content area */}
       <main className="admin-main">
-        {/* Mobile Toggle Button */}
-        <button
-          className="admin-mobile-toggle"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Menü"
-        >
-          {sidebarOpen ? Icons.close : Icons.menu}
-        </button>
-
+        {/* Mobile Topbar */}
+        <div className="admin-mobile-topbar">
+          <button
+            className="admin-mobile-menu-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Menü"
+          >
+            {sidebarOpen ? Icons.close : Icons.menu}
+          </button>
+          <span className="admin-mobile-topbar-title">{meta.title}</span>
+        </div>
 
         <div className="admin-content">
           {/* Integrated Dynamic Header */}

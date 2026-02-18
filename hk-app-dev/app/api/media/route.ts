@@ -1,8 +1,46 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { requireAuth } from '@/lib/api-auth';
-import { unlink } from 'fs/promises';
-import path from 'path';
+import { deleteFromStorage } from '@/lib/storage';
+
+function getStorageKeyFromUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (value.startsWith('/uploads/')) return value.replace('/uploads/', '');
+
+  try {
+    const parsed = new URL(value);
+    return parsed.pathname.replace(/^\//, '') || null;
+  } catch {
+    return null;
+  }
+}
+
+function collectVariantKeys(variants: unknown): string[] {
+  if (!variants || typeof variants !== 'object') return [];
+
+  const keys = new Set<string>();
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== 'object') return;
+
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item);
+      return;
+    }
+
+    const record = node as Record<string, unknown>;
+    const key = record.key;
+    if (typeof key === 'string' && key.trim()) {
+      keys.add(key);
+    }
+
+    for (const value of Object.values(record)) {
+      walk(value);
+    }
+  };
+
+  walk(variants);
+  return Array.from(keys);
+}
 
 // GET: list media for an entity
 export async function GET(req: Request) {
@@ -56,21 +94,27 @@ export async function DELETE(req: Request) {
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
     // Get file info before deleting
-    const res = await query('SELECT url, thumbnail_url FROM media WHERE id=$1', [id]);
+    const res = await query('SELECT url, thumbnail_url, variants FROM media WHERE id=$1', [id]);
     if (res.rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const { url: fileUrl, thumbnail_url: thumbUrl } = res.rows[0];
+    const { url: fileUrl, thumbnail_url: thumbUrl, variants } = res.rows[0];
 
     // Delete from DB
     await query('DELETE FROM media WHERE id=$1', [id]);
 
-    // Delete files from disk
+    // Delete files from storage (R2 or local)
+    const directKeys = [
+      getStorageKeyFromUrl(fileUrl),
+      getStorageKeyFromUrl(thumbUrl),
+      ...collectVariantKeys(variants),
+    ].filter((key): key is string => Boolean(key));
+
+    const uniqueKeys = Array.from(new Set(directKeys));
     try {
-      if (fileUrl) await unlink(path.join(process.cwd(), 'public', fileUrl));
-    } catch { /* file may already be deleted */ }
-    try {
-      if (thumbUrl) await unlink(path.join(process.cwd(), 'public', thumbUrl));
-    } catch { /* thumbnail may not exist */ }
+      await Promise.all(uniqueKeys.map((key) => deleteFromStorage(key)));
+    } catch {
+      // file may already be deleted or unavailable
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

@@ -163,10 +163,17 @@ export default function AdminTrainingsPage() {
 
   return (
     <div>
-      {/* desktop actions */}
-      <div style={{ position: 'absolute', top: '2.5rem', right: '3rem' }} className="md:block hidden">
+      {/* Desktop action button */}
+      <div className="admin-page-action-desktop">
         <button className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`} onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Vazgeç' : '+ Yeni Eğitim'}
+        </button>
+      </div>
+
+      {/* Mobile action bar */}
+      <div className="admin-mobile-action-bar">
+        <button className={`admin-btn ${showForm ? 'admin-btn-secondary' : 'admin-btn-primary'}`} onClick={() => setShowForm(!showForm)}>
+          {showForm ? 'İptal' : '+ Yeni Eğitim Ekle'}
         </button>
       </div>
 
@@ -175,7 +182,7 @@ export default function AdminTrainingsPage() {
         <div className="admin-card" style={{ marginBottom: '2.5rem', border: '2px solid var(--admin-accent)', boxShadow: 'var(--admin-shadow)' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '1.5rem' }}>Yeni İçerik Kaydı</h3>
           <form onSubmit={handleCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="admin-grid-3" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <label className="admin-label">Eğitim Başlığı *</label>
                 <input className="admin-input" placeholder="Örn: Oyun Atölyesi" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
@@ -185,6 +192,10 @@ export default function AdminTrainingsPage() {
                 <select className="admin-input" value={form.event_type} onChange={(e) => setForm({ ...form, event_type: e.target.value })}>
                   {TRAINING_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className="admin-label">Başlangıç Tarihi</label>
+                <input type="date" className="admin-input" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
               </div>
             </div>
 
@@ -228,8 +239,8 @@ export default function AdminTrainingsPage() {
               <thead>
                 <tr>
                   <th>Eğitim Bilgisi</th>
-                  <th>Öne Çıkarma</th>
-                  <th>Sıra</th>
+                  <th className="hide-mobile">Öne Çıkarma</th>
+                  <th className="hide-mobile">Sıra</th>
                   <th style={{ textAlign: 'right' }}>Yönetim</th>
                 </tr>
               </thead>
@@ -265,8 +276,8 @@ export default function AdminTrainingsPage() {
                         </div>
                       </div>
                     </td>
-                    <td>{tagLabel(it.highlight_tags) || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontSize: '0.75rem' }}>Genel</span>}</td>
-                    <td>
+                    <td className="hide-mobile">{tagLabel(it.highlight_tags) || <span style={{ color: '#cbd5e1', fontStyle: 'italic', fontSize: '0.75rem' }}>Genel</span>}</td>
+                    <td className="hide-mobile">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                           <button
@@ -290,7 +301,7 @@ export default function AdminTrainingsPage() {
                       </div>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                      <div className="admin-table-actions" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                         <Link href={`/admin/trainings/edit/${it.id}`} className="admin-btn admin-btn-secondary admin-btn-sm">
                           Düzenle
                         </Link>
