@@ -28,6 +28,7 @@ export default function Navbar() {
   const bizKimizLinks = [
     { href: '/hakkimizda', label: 'Hakkımızda' },
     { href: '/akademi-olanaklari', label: 'Akademi Olanakları' },
+    { href: '/basinda-biz', label: 'Basında Biz' },
     { href: '/bize-ulasin', label: 'Bize Ulaşın' },
   ];
 

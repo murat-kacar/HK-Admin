@@ -26,6 +26,7 @@ export async function POST(req: Request) {
     const entityType = formData.get('entity_type') as string;
     const entityId = formData.get('entity_id') as string;
     const mediaType = (formData.get('media_type') as string) || 'photo';
+    const cropBgMode = (formData.get('crop_bg_mode') as string) || 'black';
 
     // Crop parameters (from cropper — pixel coordinates)
     const cropX = parseInt(formData.get('crop_x') as string) || 0;
@@ -76,7 +77,14 @@ export async function POST(req: Request) {
       } : undefined;
 
       const enableAVIF = process.env.ENABLE_AVIF === 'true';
-      const imageVariants = await processImage(buffer, entityType, parseInt(entityId), crop, enableAVIF);
+      const imageVariants = await processImage(
+        buffer,
+        entityType,
+        parseInt(entityId),
+        crop,
+        enableAVIF,
+        cropBgMode === 'auto' ? 'auto' : '#000000'
+      );
 
       // Use large variant as primary URL
       finalUrl = imageVariants.large?.url || imageVariants.original.url;

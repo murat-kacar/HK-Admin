@@ -39,20 +39,103 @@ export async function processImage(
   entityType: string,
   entityId: string | number,
   crop?: CropParams,
-  generateAVIF: boolean = false
+  generateAVIF: boolean = false,
+  cropBackground: string | 'auto' = '#000000'
 ): Promise<ImageVariants> {
   const uid = randomUUID().slice(0, 12);
-  let pipeline = sharp(buffer);
+  let workingBuffer = buffer;
+
+  const resolveBackground = async (): Promise<string> => {
+    if (cropBackground !== 'auto') {
+      return cropBackground;
+    }
+
+    try {
+      const stats = await sharp(buffer).stats();
+      const dominant = stats.dominant;
+      return `rgb(${dominant.r}, ${dominant.g}, ${dominant.b})`;
+    } catch {
+      return '#000000';
+    }
+  };
 
   // Apply crop if provided
   if (crop && crop.width > 0 && crop.height > 0) {
-    pipeline = pipeline.extract({
-      left: Math.round(crop.x),
-      top: Math.round(crop.y),
-      width: Math.round(crop.width),
-      height: Math.round(crop.height),
-    });
+    const sourceMeta = await sharp(buffer).metadata();
+    const sourceWidth = sourceMeta.width || 0;
+    const sourceHeight = sourceMeta.height || 0;
+
+    const cropLeft = Math.round(crop.x);
+    const cropTop = Math.round(crop.y);
+    const cropWidth = Math.max(1, Math.round(crop.width));
+    const cropHeight = Math.max(1, Math.round(crop.height));
+
+    const extractLeft = Math.max(0, cropLeft);
+    const extractTop = Math.max(0, cropTop);
+    const extractRight = Math.min(sourceWidth, cropLeft + cropWidth);
+    const extractBottom = Math.min(sourceHeight, cropTop + cropHeight);
+
+    const extractWidth = Math.max(0, extractRight - extractLeft);
+    const extractHeight = Math.max(0, extractBottom - extractTop);
+
+    const needsPadding =
+      cropLeft < 0 ||
+      cropTop < 0 ||
+      cropLeft + cropWidth > sourceWidth ||
+      cropTop + cropHeight > sourceHeight;
+
+    if (!needsPadding) {
+      workingBuffer = await sharp(buffer)
+        .extract({
+          left: cropLeft,
+          top: cropTop,
+          width: cropWidth,
+          height: cropHeight,
+        })
+        .toBuffer();
+    } else {
+      const background = await resolveBackground();
+
+      if (extractWidth > 0 && extractHeight > 0) {
+        const extracted = await sharp(buffer)
+          .extract({
+            left: extractLeft,
+            top: extractTop,
+            width: extractWidth,
+            height: extractHeight,
+          })
+          .toBuffer();
+
+        workingBuffer = await sharp({
+          create: {
+            width: cropWidth,
+            height: cropHeight,
+            channels: 3,
+            background,
+          },
+        })
+          .composite([
+            {
+              input: extracted,
+              left: Math.max(0, -cropLeft),
+              top: Math.max(0, -cropTop),
+            },
+          ])
+          .toBuffer();
+      } else {
+        workingBuffer = await sharp({
+          create: {
+            width: cropWidth,
+            height: cropHeight,
+            channels: 3,
+            background,
+          },
+        }).toBuffer();
+      }
+    }
   }
+
+  let pipeline = sharp(workingBuffer);
 
   // Get original metadata
   const originalMeta = await pipeline.metadata();

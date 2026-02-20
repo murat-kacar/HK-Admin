@@ -10,6 +10,8 @@
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:strict": "eslint . --ext .js,.ts,.tsx --max-warnings=0",
     "typecheck": "tsc --noEmit",
+    "audit:prod": "npm audit --omit=dev",
+    "audit:full": "npm audit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
@@ -38,12 +40,12 @@
     "tailwindcss-animate": "1.0.7"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "6.21.0",
     "@types/fluent-ffmpeg": "2.1.28",
     "@types/mime-types": "^3.0.1",
     "@types/pg": "8.11.6",
     "@types/react": "19.2.13",
     "@types/sanitize-html": "2.16.0",
+    "@typescript-eslint/eslint-plugin": "6.21.0",
     "autoprefixer": "10.4.17",
     "eslint": "^8.57.1",
     "eslint-config-next": "^13.5.11",

@@ -1,7 +1,8 @@
 "use client";
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/ToastProvider';
 import { useRouter } from 'next/navigation';
+import MediaManager from '@/components/admin/MediaManager';
 
 const EVENT_TYPES = [
   { value: 'Film Gösterimi', label: 'Film Gösterimi' },
@@ -36,6 +37,15 @@ interface EventForm {
   highlight_tags: string[];
 }
 
+type MediaItem = {
+  id: number;
+  media_type: string;
+  url: string;
+  thumbnail_url: string | null;
+  original_name: string;
+  display_order: number;
+};
+
 export default function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -56,46 +66,65 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
     metadata: {},
     highlight_tags: []
   });
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [errors, setErrors] = useState<string | null>(null);
   const toast = useToast();
 
+  const fetchEvent = useCallback(async () => {
+    const response = await fetch(`/api/events/id/${id}`);
+    const payload = await response.json();
+    const event = payload.data;
+
+    if (!event) {
+      toast?.toast({ title: 'Hata', description: 'Etkinlik bulunamadı', type: 'error' });
+      router.push('/admin/events');
+      return;
+    }
+
+    if (typeof event.metadata === 'string') {
+      try { event.metadata = JSON.parse(event.metadata); } catch { event.metadata = {}; }
+    }
+
+    if (event.start_date) {
+      event.start_date = event.start_date.split('T')[0];
+    }
+    if (event.end_date) {
+      event.end_date = event.end_date.split('T')[0];
+    }
+
+    if (!event.highlight_tags) {
+      event.highlight_tags = [];
+    }
+
+    setForm(event);
+  }, [id, router, toast]);
+
+  const fetchMedia = useCallback(() => {
+    fetch(`/api/media?entity_type=event&entity_id=${id}`)
+      .then((response) => response.json())
+      .then((payload) => setMedia(payload.data || []))
+      .catch(() => { });
+  }, [id]);
+
+  const handleMediaRefresh = useCallback(async () => {
+    fetchMedia();
+    try {
+      await fetchEvent();
+    } catch {
+      // ignore refresh race errors
+    }
+  }, [fetchEvent, fetchMedia]);
+
   useEffect(() => {
-    // Fetch Event Data
-    fetch(`/api/events/id/${id}`)
-      .then((r) => r.json())
-      .then((j) => {
-        const event = j.data;
-        if (event) {
-          // Parse metadata if string
-          if (typeof event.metadata === 'string') {
-            try { event.metadata = JSON.parse(event.metadata); } catch { event.metadata = {}; }
-          }
-          
-          // Format dates for input[type=date]
-          if (event.start_date) {
-            event.start_date = event.start_date.split('T')[0];
-          }
-          if (event.end_date) {
-            event.end_date = event.end_date.split('T')[0];
-          }
-          
-          // Ensure highlight_tags is an array
-          if (!event.highlight_tags) {
-            event.highlight_tags = [];
-          }
-          
-          setForm(event);
-        } else {
-          toast?.toast({ title: 'Hata', description: 'Etkinlik bulunamadı', type: 'error' });
-          router.push('/admin/events');
-        }
-      })
+    fetchEvent()
       .catch((err) => {
         console.error(err);
         toast?.toast({ title: 'Hata', description: 'Yükleme başarısız', type: 'error' });
       })
       .finally(() => setLoading(false));
-  }, [id, router, toast]);
+
+    fetchMedia();
+  }, [fetchEvent, fetchMedia, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,6 +372,10 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
                   />
                 </div>
               )}
+
+              <div style={{ marginTop: '1.5rem' }}>
+                <MediaManager entityType="event" entityId={Number(id)} media={media} onRefresh={handleMediaRefresh} />
+              </div>
             </div>
 
             {/* Metadata (JSON) */}

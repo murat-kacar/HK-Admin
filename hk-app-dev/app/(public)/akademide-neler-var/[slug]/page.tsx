@@ -52,7 +52,27 @@ interface EventMetadata {
 async function getEvent(slug: string) {
   try {
     const res = await query<EventData>(
-      'SELECT id, title, slug, description, content, event_type, start_date, end_date, location, image_url, metadata FROM events WHERE slug = $1 AND is_active = true',
+      `SELECT
+        e.id,
+        e.title,
+        e.slug,
+        e.description,
+        e.content,
+        e.event_type,
+        e.start_date,
+        e.end_date,
+        e.location,
+        COALESCE(m.url, e.image_url) as image_url,
+        e.metadata
+      FROM events e
+      LEFT JOIN (
+        SELECT DISTINCT ON (entity_id) entity_id, url
+        FROM media
+        WHERE entity_type = 'event' AND media_type = 'cover'
+        ORDER BY entity_id, id DESC
+      ) m ON e.id = m.entity_id
+      WHERE e.slug = $1 AND e.is_active = true
+      LIMIT 1`,
       [slug]
     );
     const event = res.rows[0] || null;

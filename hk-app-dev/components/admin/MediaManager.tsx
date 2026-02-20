@@ -14,7 +14,7 @@ interface MediaItem {
 }
 
 interface Props {
-  entityType: 'training' | 'instructor';
+  entityType: 'training' | 'instructor' | 'event';
   entityId: number;
   media: MediaItem[];
   onRefresh: () => void;
@@ -25,6 +25,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropTarget, setCropTarget] = useState<'cover' | 'photo'>('photo');
+  const [cropAspect, setCropAspect] = useState<number>(4 / 3);
   const [deleting, setDeleting] = useState<number | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -33,6 +34,34 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
   const cover = media.find((m) => m.media_type === 'cover');
   const photos = media.filter((m) => m.media_type === 'photo').sort((a, b) => a.display_order - b.display_order);
   const videos = media.filter((m) => m.media_type === 'video').sort((a, b) => a.display_order - b.display_order);
+
+  const coverRatioText = entityType === 'instructor' ? '1:1 (profil fotoğrafı)' : '4:3 (kapak/hero)';
+  const galleryRatioText = 'Serbest (orijinal görsel oranı)';
+
+  const getCoverAspect = useCallback(() => {
+    if (entityType === 'instructor') {
+      return 1;
+    }
+    return 4 / 3;
+  }, [entityType]);
+
+  const getImageAspect = useCallback((file: File) => {
+    return new Promise<number>((resolve) => {
+      const tempUrl = URL.createObjectURL(file);
+      const img = new window.Image();
+      img.onload = () => {
+        const width = img.naturalWidth || 4;
+        const height = img.naturalHeight || 3;
+        URL.revokeObjectURL(tempUrl);
+        resolve(width / height);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(tempUrl);
+        resolve(4 / 3);
+      };
+      img.src = tempUrl;
+    });
+  }, []);
 
   // Upload helper (stable reference for hooks)
   const uploadFile = useCallback(async (file: File, mediaType: string) => {
@@ -57,13 +86,20 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
   }, [entityType, entityId, onRefresh]);
 
   // File selected → open cropper for images, direct upload for videos
-  const handleFileSelect = useCallback((files: FileList | null, mediaType: 'cover' | 'photo' | 'video') => {
+  const handleFileSelect = useCallback(async (files: FileList | null, mediaType: 'cover' | 'photo' | 'video') => {
     if (!files || files.length === 0) {return;}
     const file = files[0];
 
     if (mediaType === 'video') {
       uploadFile(file, 'video');
       return;
+    }
+
+    if (mediaType === 'cover') {
+      setCropAspect(getCoverAspect());
+    } else {
+      const imageAspect = await getImageAspect(file);
+      setCropAspect(imageAspect > 0 ? imageAspect : 4 / 3);
     }
 
     // Image → open cropper
@@ -74,9 +110,9 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
       setCropTarget(mediaType);
     };
     reader.readAsDataURL(file);
-  }, [uploadFile]);
+  }, [uploadFile, getCoverAspect, getImageAspect]);
 
-  const handleCropComplete = async (_croppedArea: Area, croppedAreaPixels: Area) => {
+  const handleCropComplete = async (_croppedArea: Area, croppedAreaPixels: Area, fillMode: 'black' | 'auto') => {
     if (!cropFile) {return;}
     setCropSrc(null);
 
@@ -89,6 +125,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
     fd.append('crop_y', String(Math.round(croppedAreaPixels.y)));
     fd.append('crop_width', String(Math.round(croppedAreaPixels.width)));
     fd.append('crop_height', String(Math.round(croppedAreaPixels.height)));
+    fd.append('crop_bg_mode', fillMode);
 
     setUploading(true);
     try {
@@ -123,7 +160,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
       {cropSrc && (
         <CropperModal
           imageSrc={cropSrc}
-          aspect={1}
+          aspect={cropAspect}
           onComplete={handleCropComplete}
           onCancel={() => { setCropSrc(null); setCropFile(null); }}
         />
@@ -134,6 +171,9 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
         <label className="admin-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
           {entityType === 'instructor' ? 'Profil Fotoğrafı' : 'Kapak Fotoğrafı'}
         </label>
+        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.75rem', color: '#64748b' }}>
+          Önerilen kırpma oranı: <strong>{coverRatioText}</strong>
+        </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{
             width: 120, height: 120, borderRadius: entityType === 'instructor' ? '50%' : '8px',
@@ -158,6 +198,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
               onChange={(e) => handleFileSelect(e.target.files, 'cover')}
             />
             <button
+              type="button"
               className="admin-btn admin-btn-secondary admin-btn-sm"
               onClick={() => coverInputRef.current?.click()}
               disabled={uploading}
@@ -166,6 +207,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
             </button>
             {cover && (
               <button
+                type="button"
                 className="admin-btn admin-btn-danger admin-btn-sm"
                 style={{ marginLeft: '0.5rem' }}
                 onClick={() => handleDelete(cover.id)}
@@ -191,6 +233,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
               onChange={(e) => handleFileSelect(e.target.files, 'photo')}
             />
             <button
+              type="button"
               className="admin-btn admin-btn-secondary admin-btn-sm"
               onClick={() => photoInputRef.current?.click()}
               disabled={uploading || photos.length >= 10}
@@ -199,6 +242,9 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
             </button>
           </div>
         </div>
+        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.75rem', color: '#64748b' }}>
+          Önerilen kırpma oranı: <strong>{galleryRatioText}</strong>
+        </p>
         {photos.length === 0 ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #e2e8f0' }}>
             Henüz fotoğraf eklenmemiş
@@ -209,6 +255,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
               <div key={p.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: '6px', overflow: 'hidden', background: '#f1f5f9' }}>
                 <Image src={p.thumbnail_url || p.url} alt={p.original_name} fill sizes="100px" className="object-cover" />
                 <button
+                  type="button"
                   onClick={() => handleDelete(p.id)}
                   disabled={deleting === p.id}
                   style={{
@@ -240,6 +287,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
               onChange={(e) => handleFileSelect(e.target.files, 'video')}
             />
             <button
+              type="button"
               className="admin-btn admin-btn-secondary admin-btn-sm"
               onClick={() => videoInputRef.current?.click()}
               disabled={uploading || videos.length >= 4}
@@ -266,6 +314,7 @@ export default function MediaManager({ entityType, entityId, media, onRefresh }:
                   </div>
                 )}
                 <button
+                  type="button"
                   onClick={() => handleDelete(v.id)}
                   disabled={deleting === v.id}
                   style={{

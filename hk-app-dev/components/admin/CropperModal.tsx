@@ -5,13 +5,14 @@ import Cropper, { type Area } from 'react-easy-crop';
 interface Props {
   imageSrc: string;
   aspect?: number;
-  onComplete: (croppedArea: Area, croppedAreaPixels: Area) => void;
+  onComplete: (croppedArea: Area, croppedAreaPixels: Area, fillMode: 'black' | 'auto') => void;
   onCancel: () => void;
 }
 
 export default function CropperModal({ imageSrc, aspect = 1, onComplete, onCancel }: Props) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [fillMode, setFillMode] = useState<'black' | 'auto'>('black');
   const [croppedArea, setCroppedArea] = useState<Area | null>(null);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
@@ -22,7 +23,7 @@ export default function CropperModal({ imageSrc, aspect = 1, onComplete, onCance
 
   const handleConfirm = () => {
     if (croppedArea && croppedAreaPixels) {
-      onComplete(croppedArea, croppedAreaPixels);
+      onComplete(croppedArea, croppedAreaPixels, fillMode);
     }
   };
 
@@ -39,6 +40,9 @@ export default function CropperModal({ imageSrc, aspect = 1, onComplete, onCance
           crop={crop}
           zoom={zoom}
           aspect={aspect}
+          minZoom={0.5}
+          maxZoom={3}
+          restrictPosition={false}
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
@@ -63,7 +67,7 @@ export default function CropperModal({ imageSrc, aspect = 1, onComplete, onCance
           </svg>
           <input
             type="range"
-            min={1}
+            min={0.5}
             max={3}
             step={0.05}
             value={zoom}
@@ -75,6 +79,25 @@ export default function CropperModal({ imageSrc, aspect = 1, onComplete, onCance
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M8 11h6" /><path d="M11 8v6" />
           </svg>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Boşluk Dolgusu</span>
+          <select
+            value={fillMode}
+            onChange={(e) => setFillMode(e.target.value as 'black' | 'auto')}
+            style={{
+              background: '#0f172a',
+              color: '#e2e8f0',
+              border: '1px solid #334155',
+              borderRadius: '6px',
+              padding: '6px 8px',
+              fontSize: '0.8rem',
+            }}
+          >
+            <option value="black">Siyah</option>
+            <option value="auto">Ortam Tonu</option>
+          </select>
         </div>
 
         {/* Buttons */}
